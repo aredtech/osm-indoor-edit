@@ -64,8 +64,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SNAP-01**: User can snap a new vertex to a nearby existing node when snapping is enabled.
 - [x] **SNAP-02**: User can snap a new vertex to an existing edge and reuse or create shared boundary nodes as needed.
 - [x] **SNAP-03**: Adjacent rooms can intentionally share wall nodes.
-- [ ] **SNAP-04**: When a shared node moves, all connected ways update consistently.
-- [ ] **SNAP-05**: Export avoids duplicating nodes when features intentionally share geometry.
+- [x] **SNAP-04**: When a shared node moves, all connected ways update consistently.
+- [x] **SNAP-05**: Export avoids duplicating nodes when features intentionally share geometry.
 
 ### Relations
 
@@ -79,9 +79,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **IO-01**: Developer can export current data as `{ elements: [...], status: true }`.
 - [ ] **IO-02**: Export includes nodes, ways, and relations in an OsmInEdit-style shape.
 - [ ] **IO-03**: Developer can load OsmInEdit-style JSON containing nodes, ways, and relations.
-- [ ] **IO-04**: Loading data rebuilds editable internal feature and primitive models.
-- [ ] **IO-05**: Imported data can be edited and exported back to the same OsmInEdit-style shape.
-- [ ] **IO-06**: Developer can get current elements without publishing or saving them anywhere.
+- [x] **IO-04**: Loading data rebuilds editable internal feature and primitive models.
+- [x] **IO-05**: Imported data can be edited and exported back to the same OsmInEdit-style shape.
+- [x] **IO-06**: Developer can get current elements without publishing or saving them anywhere.
 
 ### Validation
 
@@ -198,8 +198,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SNAP-01 | Phase 3 | Complete |
 | SNAP-02 | Phase 3 | Complete |
 | SNAP-03 | Phase 3 | Complete |
-| SNAP-04 | Phase 3 | Pending |
-| SNAP-05 | Phase 3 | Pending |
+| SNAP-04 | Phase 3 | Complete |
+| SNAP-05 | Phase 3 | Complete |
 | REL-01 | Phase 3 | Pending |
 | REL-02 | Phase 3 | Pending |
 | REL-03 | Phase 3 | Pending |
@@ -211,9 +211,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VAL-05 | Phase 3 | Pending |
 | VAL-06 | Phase 3 | Pending |
 | INDOOR-06 | Phase 3 | Pending |
-| IO-04 | Phase 3 | Pending |
-| IO-05 | Phase 3 | Pending |
-| IO-06 | Phase 3 | Pending |
+| IO-04 | Phase 3 | Complete |
+| IO-05 | Phase 3 | Complete |
+| IO-06 | Phase 3 | Complete |
 | ADAPT-03 | Phase 4 | Pending |
 | API-06 | Phase 4 | Pending |
 | EVT-01 | Phase 4 | Pending |
