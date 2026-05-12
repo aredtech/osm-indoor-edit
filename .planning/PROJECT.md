@@ -14,20 +14,21 @@ Developers can add reliable indoor map editing behavior to a Leaflet or MapLibre
 
 ### Validated
 
-(None yet - ship to validate)
+- [x] Phase 02 validated Leaflet host-driven drawing for room polygons, corridor polygons, and POI/point features.
+- [x] Phase 02 validated Leaflet selection, editable outlines, vertex handles, midpoint insertion, whole-feature movement, vertex deletion, feature deletion, and tag updates.
+- [x] Phase 02 validated synchronization between editable feature geometry and OSM-like node/way primitives during Leaflet editing.
+- [x] Phase 02 validated level-aware tags, current-level filtering, and `repeat_on` visibility for committed Leaflet features.
+- [x] Phase 02 validated a vanilla Leaflet example with host-owned controls and an automated Playwright smoke test.
 
 ### Active
 
 - [ ] Provide a plain TypeScript core editing engine with no framework dependency.
-- [ ] Support Leaflet and MapLibre GL JS through renderer adapters.
+- [ ] Bring MapLibre GL JS to parity with the validated Leaflet renderer adapter.
 - [ ] Let the SDK own temporary drawing, committed feature, vertex handle, selection, and snap helper map layers.
-- [ ] Support drawing room polygons, corridor polygons, and POI/point features.
-- [ ] Support selection, hover state, editable outlines, draggable vertex handles, whole-feature movement, vertex add/delete, and feature deletion.
-- [ ] Keep internal feature geometry and OSM-like node/way/relation primitives synchronized during editing.
+- [ ] Keep relation primitives synchronized during editing once relation editing is introduced.
 - [ ] Export OsmInEdit-style JSON as the primary v1 output format.
 - [ ] Import/load OsmInEdit-style JSON, preserve numeric IDs/tags/timestamps where appropriate, and allow editing after import.
 - [ ] Generate stable large numeric local IDs for frontend-created nodes, ways, and relations.
-- [ ] Support level-aware editing, level tags, level filtering, and multi-level tags such as `repeat_on` where needed.
 - [ ] Support shared nodes and shared walls through snapping, node reuse, and connected-way updates.
 - [ ] Support basic relation modeling, import/export, validation, and editing where needed.
 - [ ] Provide moderately strict pluggable validation with structured issues.
@@ -82,7 +83,7 @@ Indoor features should include rooms, corridors, doors, stairs, elevators, escal
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Build a headless/frontend TypeScript library instead of a full editor app | Host applications need editing behavior and OsmInEdit-style output without inheriting OsmInEdit's UI, backend, or publishing workflow | - Pending |
-| Support Leaflet and MapLibre in v1 | These are the requested initial renderers and cover common open web map use cases | - Pending |
+| Support Leaflet and MapLibre in v1 | These are the requested initial renderers and cover common open web map use cases | Leaflet validated in Phase 02; MapLibre remains planned |
 | Keep the core framework-independent | Angular, React, Vue, and vanilla apps should all be able to use normal TypeScript APIs | - Pending |
 | Treat OsmInEdit-style JSON as the primary v1 format | The main success condition is producing OsmInEdit-like node/way/relation output | - Pending |
 | Include shared nodes/walls and relation support in v1 | The target format is OSM-like, so connected primitives matter; isolated polygon-only editing would miss the point | - Pending |
@@ -107,4 +108,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-12 after initialization*
+*Last updated: 2026-05-12 after Phase 02 completion*
