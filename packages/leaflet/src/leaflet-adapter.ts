@@ -182,6 +182,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
   }
 
   removeFeature(featureId: string): void {
+    this.clearVertexHandles(featureId);
     const layer = this.committedLayers.get(featureId);
     if (layer) {
       this.groups?.committed.removeLayer(layer);
@@ -189,7 +190,6 @@ export class LeafletRendererAdapter implements RendererAdapter {
       this.committedLayers.delete(featureId);
     }
     this.committedFeatures.delete(featureId);
-    this.handleLayers.delete(featureId);
 
     if (this.selectedFeatureId === featureId) {
       this.setSelectedFeature(null);

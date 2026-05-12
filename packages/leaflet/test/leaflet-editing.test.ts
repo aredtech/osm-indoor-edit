@@ -83,6 +83,7 @@ describe("Leaflet editing visuals", () => {
     adapter.removeFeature(feature.id);
 
     expect(adapter.getLayerCounts().committed).toBe(0);
+    expect(adapter.getLayerCounts().handles).toBe(0);
     expect(adapter.getHandleLayerCount(feature.id)).toBe(0);
   });
 });
