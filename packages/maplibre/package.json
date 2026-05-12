@@ -9,7 +9,13 @@
     "build": "tsc -b",
     "typecheck": "tsc -b --noEmit"
   },
+  "peerDependencies": {
+    "maplibre-gl": "^5.0.0"
+  },
   "dependencies": {
     "@osminedit-lib/core": "workspace:*"
+  },
+  "devDependencies": {
+    "maplibre-gl": "^5.0.0"
   }
 }
