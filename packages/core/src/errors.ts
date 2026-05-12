@@ -20,3 +20,8 @@ export class UnsupportedOperationError extends OsmIndoorError {
   }
 }
 
+export class DrawingIntegrityError extends OsmIndoorError {
+  constructor(message: string) {
+    super(message, "DRAWING_INTEGRITY_ERROR");
+  }
+}

@@ -1,0 +1,58 @@
+import type { Coordinate, TemporaryGeometry } from "./adapter";
+import type { Tags } from "./types";
+
+export type DrawKind = "room" | "corridor" | "poi";
+
+export interface StartDrawOptions {
+  tags?: Tags;
+}
+
+export interface DraftDrawingState {
+  kind: DrawKind;
+  level: string;
+  tags: Tags;
+  coordinates: Coordinate[];
+}
+
+export function createMinimumTags(kind: DrawKind, level: string, hostTags: Tags = {}): Tags {
+  if (kind === "room") {
+    return { ...hostTags, indoor: "room", level };
+  }
+
+  if (kind === "corridor") {
+    return { ...hostTags, indoor: "corridor", level };
+  }
+
+  return { ...hostTags, level };
+}
+
+export function getMinimumPointCount(kind: DrawKind): number {
+  return kind === "poi" ? 1 : 3;
+}
+
+export function buildTemporaryGeometry(
+  draft: DraftDrawingState
+): TemporaryGeometry | undefined {
+  if (draft.coordinates.length === 0) {
+    return undefined;
+  }
+
+  if (draft.kind === "poi") {
+    return {
+      geometryType: "point",
+      coordinates: draft.coordinates.slice(0, 1)
+    };
+  }
+
+  if (draft.coordinates.length >= getMinimumPointCount(draft.kind)) {
+    return {
+      geometryType: "polygon",
+      coordinates: [...draft.coordinates, draft.coordinates[0]]
+    };
+  }
+
+  return {
+    geometryType: "line",
+    coordinates: [...draft.coordinates]
+  };
+}

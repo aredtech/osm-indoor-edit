@@ -1,5 +1,6 @@
 export * from "./adapter";
 export * from "./clock";
+export * from "./drawing";
 export * from "./editor";
 export * from "./errors";
 export * from "./events";
