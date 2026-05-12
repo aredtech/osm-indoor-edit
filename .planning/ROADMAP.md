@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 4 plans
 
 Plans:
-- [ ] 01-01: Workspace, package, build, and test foundation
+- [x] 01-01: Workspace, package, build, and test foundation
 - [ ] 01-02: Primitive store, ID strategy, and OsmInEdit element types
 - [ ] 01-03: Feature model, editor facade, events, and level state
 - [ ] 01-04: Import/export round-trip and fake adapter contract tests
