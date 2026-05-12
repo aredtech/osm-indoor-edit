@@ -56,7 +56,7 @@ describe("Leaflet editing visuals", () => {
 
     expect(adapter.styles.vertexHandle.color).toBe("#F97316");
     expect(adapter.getLayerCounts().selection).toBe(1);
-    expect(adapter.getHandleLayerCount(feature.id)).toBe(5);
+    expect(adapter.getHandleLayerCount(feature.id)).toBe(6);
   });
 
   it("emits vertexDrag, midpointClick, and featureDrag", () => {

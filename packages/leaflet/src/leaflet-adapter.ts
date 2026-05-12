@@ -163,7 +163,22 @@ export class LeafletRendererAdapter implements RendererAdapter {
   }
 
   updateFeature(feature: FeatureRecord): void {
-    this.commitFeature(feature);
+    const wasSelected = this.selectedFeatureId === feature.id;
+    const existing = this.committedLayers.get(feature.id);
+    if (existing) {
+      this.groups?.committed.removeLayer(existing);
+      this.committedLayers.delete(feature.id);
+    }
+
+    this.committedFeatures.set(feature.id, feature);
+    const layer = this.createCommittedLayer(feature, false);
+    this.committedLayers.set(feature.id, layer);
+    if (isFeatureVisibleOnLevel(feature, this.currentLevel)) {
+      this.groups?.committed.addLayer(layer);
+    }
+    if (wasSelected) {
+      this.setSelectedFeature(feature.id);
+    }
   }
 
   removeFeature(featureId: string): void {
@@ -204,8 +219,13 @@ export class LeafletRendererAdapter implements RendererAdapter {
       vertices.push(marker);
     }
 
-    for (let index = 0; index < handles.length - 1; index += 1) {
-      const midpoint = midpointCoordinate(handles[index].coordinate, handles[index + 1].coordinate);
+    const feature = this.committedFeatures.get(featureId);
+    const midpointCount = feature?.geometryType === "polygon" ? handles.length : handles.length - 1;
+    for (let index = 0; index < midpointCount; index += 1) {
+      const midpoint = midpointCoordinate(
+        handles[index].coordinate,
+        handles[(index + 1) % handles.length].coordinate
+      );
       const marker = L.circleMarker(toLatLng(midpoint), {
         ...this.styles.midpointHandle,
         pane: this.paneName
