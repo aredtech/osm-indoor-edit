@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "noEmit": true,
+    "paths": {
+      "@osminedit-lib/core": ["packages/core/src/index.ts"],
+      "@osminedit-lib/leaflet": ["packages/leaflet/src/index.ts"],
+      "@osminedit-lib/maplibre": ["packages/maplibre/src/index.ts"]
+    }
+  },
+  "include": ["packages/*/src/**/*.ts", "packages/*/test/**/*.ts", "examples/*/src/**/*.ts"]
+}
