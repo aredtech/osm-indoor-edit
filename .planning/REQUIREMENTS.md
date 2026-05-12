@@ -57,7 +57,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **INDOOR-03**: New POI features can carry amenity, shop, office, name, level, and custom tags.
 - [x] **INDOOR-04**: Developer can filter visible features by current level.
 - [x] **INDOOR-05**: Developer can represent single-level and multi-level features using `level` and `repeat_on` style tags.
-- [ ] **INDOOR-06**: Developer can create or import floor outline and building outline features as supported indoor feature types.
+- [x] **INDOOR-06**: Developer can create or import floor outline and building outline features as supported indoor feature types.
 
 ### Shared Nodes and Snapping
 
@@ -69,10 +69,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Relations
 
-- [ ] **REL-01**: Editor state can store relation primitives with numeric ID, members, tags, and timestamp.
-- [ ] **REL-02**: Developer can import and export relation primitives in OsmInEdit-style JSON.
-- [ ] **REL-03**: Developer can validate relations for missing or broken members.
-- [ ] **REL-04**: Developer can use minimal relation editing APIs for grouping or complex indoor structures needed in v1.
+- [x] **REL-01**: Editor state can store relation primitives with numeric ID, members, tags, and timestamp.
+- [x] **REL-02**: Developer can import and export relation primitives in OsmInEdit-style JSON.
+- [x] **REL-03**: Developer can validate relations for missing or broken members.
+- [x] **REL-04**: Developer can use minimal relation editing APIs for grouping or complex indoor structures needed in v1.
 
 ### Import and Export
 
@@ -200,17 +200,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SNAP-03 | Phase 3 | Complete |
 | SNAP-04 | Phase 3 | Complete |
 | SNAP-05 | Phase 3 | Complete |
-| REL-01 | Phase 3 | Pending |
-| REL-02 | Phase 3 | Pending |
-| REL-03 | Phase 3 | Pending |
-| REL-04 | Phase 3 | Pending |
+| REL-01 | Phase 3 | Complete |
+| REL-02 | Phase 3 | Complete |
+| REL-03 | Phase 3 | Complete |
+| REL-04 | Phase 3 | Complete |
 | VAL-01 | Phase 3 | Pending |
 | VAL-02 | Phase 3 | Pending |
 | VAL-03 | Phase 3 | Pending |
 | VAL-04 | Phase 3 | Pending |
 | VAL-05 | Phase 3 | Pending |
 | VAL-06 | Phase 3 | Pending |
-| INDOOR-06 | Phase 3 | Pending |
+| INDOOR-06 | Phase 3 | Complete |
 | IO-04 | Phase 3 | Complete |
 | IO-05 | Phase 3 | Complete |
 | IO-06 | Phase 3 | Complete |
