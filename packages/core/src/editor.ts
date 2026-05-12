@@ -1,6 +1,12 @@
 import type { Coordinate, RendererAdapter } from "./adapter";
 import { type Clock, systemClock } from "./clock";
 import {
+  type CoordinateDelta,
+  VertexEditError,
+  canDeleteVertex,
+  translateCoordinate
+} from "./editing";
+import {
   createMinimumTags,
   buildTemporaryGeometry,
   getMinimumPointCount,
@@ -43,9 +49,13 @@ export interface IndoorEditor {
   startDraw(kind: DrawKind, options?: StartDrawOptions): void;
   cancelDraw(): void;
   finishDraw(): FeatureRecord;
-  selectFeature(featureId: string | null): never;
-  deleteFeature(featureId: string): never;
-  updateTags(featureId: string, tags: Tags): never;
+  selectFeature(featureId: string | null): void;
+  deleteFeature(featureId: string): void;
+  updateTags(featureId: string, tags: Tags): FeatureRecord;
+  deleteVertex(featureId: string, vertexIndex: number): FeatureRecord;
+  moveVertex(featureId: string, vertexIndex: number, coordinate: Coordinate): FeatureRecord;
+  insertVertex(featureId: string, edgeIndex: number, coordinate: Coordinate): FeatureRecord;
+  moveFeature(featureId: string, delta: CoordinateDelta): FeatureRecord;
   getState(): Readonly<EditorStateSnapshot>;
   getElements(): readonly OsmElement[];
   loadOsmInEdit(data: OsmInEditExport): void;
@@ -75,6 +85,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
   private readonly ids: ElementIdAllocator;
   private level: string | undefined;
   private draft: DraftDrawingState | undefined;
+  private selectedFeatureId: string | null = null;
   private destroyed = false;
 
   constructor(options: EditorOptions) {
@@ -90,7 +101,20 @@ class HeadlessIndoorEditor implements IndoorEditor {
 
     if (this.adapter) {
       this.adapterUnsubscribers.push(
-        this.adapter.on("pointerDown", (event) => this.addDraftCoordinate(event.coordinate))
+        this.adapter.on("pointerDown", (event) => this.addDraftCoordinate(event.coordinate)),
+        this.adapter.on("featureClick", (event) => this.selectFeature(event.featureId)),
+        this.adapter.on("vertexDrag", (event) =>
+          this.moveVertex(event.featureId, event.vertexIndex, event.coordinate)
+        ),
+        this.adapter.on("midpointClick", (event) =>
+          this.insertVertex(event.featureId, event.edgeIndex, event.coordinate)
+        ),
+        this.adapter.on("featureDrag", (event) =>
+          this.moveFeature(event.featureId, {
+            lat: event.to.lat - event.from.lat,
+            lon: event.to.lon - event.from.lon
+          })
+        )
       );
     }
   }
@@ -166,16 +190,135 @@ class HeadlessIndoorEditor implements IndoorEditor {
     return feature;
   }
 
-  selectFeature(_featureId: string | null): never {
-    throw new UnsupportedOperationError("selectFeature");
+  selectFeature(featureId: string | null): void {
+    if (featureId !== null) {
+      this.requireFeature(featureId);
+    }
+
+    this.selectedFeatureId = featureId;
+    this.adapter?.setSelectedFeature(featureId);
+    if (featureId === null) {
+      this.adapter?.clearVertexHandles();
+    } else {
+      this.refreshFeatureHandles(featureId);
+    }
+    this.events.emit("featureSelected", { featureId });
   }
 
-  deleteFeature(_featureId: string): never {
-    throw new UnsupportedOperationError("deleteFeature");
+  deleteFeature(featureId: string): void {
+    const feature = this.requireFeature(featureId);
+    if (feature.primitiveRefs.wayId !== undefined) {
+      this.primitiveStore.deleteElement("way", feature.primitiveRefs.wayId);
+    }
+
+    for (const nodeId of uniqueNodeIds(feature.primitiveRefs.nodeIds)) {
+      this.deleteNodeIfUnreferenced(nodeId);
+    }
+
+    this.featureStore.remove(featureId);
+    this.adapter?.removeFeature(featureId);
+    if (this.selectedFeatureId === featureId) {
+      this.selectedFeatureId = null;
+      this.adapter?.clearVertexHandles(featureId);
+    }
+    this.events.emit("featureDeleted", { featureId });
   }
 
-  updateTags(_featureId: string, _tags: Tags): never {
-    throw new UnsupportedOperationError("updateTags");
+  updateTags(featureId: string, tags: Tags): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const nextTags = { ...feature.tags, ...tags };
+    if (feature.primitiveRefs.wayId !== undefined) {
+      this.primitiveStore.updateElementTags("way", feature.primitiveRefs.wayId, nextTags);
+    } else {
+      for (const nodeId of uniqueNodeIds(feature.primitiveRefs.nodeIds)) {
+        this.primitiveStore.updateElementTags("node", nodeId, nextTags);
+      }
+    }
+
+    const updated = this.featureStore.update(featureId, {
+      tags: nextTags,
+      level: nextTags.level ?? feature.level
+    });
+    this.adapter?.updateFeature(updated);
+    this.events.emit("tagsUpdated", { featureId, tags: updated.tags });
+    this.events.emit("featureUpdated", { featureId });
+    return updated;
+  }
+
+  deleteVertex(featureId: string, vertexIndex: number): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const wayId = this.requireFeatureWayId(feature);
+    const editableNodeIds = getEditableNodeIds(feature);
+    if (!canDeleteVertex(feature.geometryType, editableNodeIds.length)) {
+      throw new VertexEditError("Cannot delete vertex because the feature would become invalid");
+    }
+
+    const removedNodeId = editableNodeIds[vertexIndex];
+    if (removedNodeId === undefined) {
+      throw new VertexEditError(`Vertex ${vertexIndex} does not exist`);
+    }
+
+    const nextNodeIds = editableNodeIds.filter((_, index) => index !== vertexIndex);
+    const way = this.primitiveStore.updateWayNodes(wayId, nextNodeIds);
+    this.deleteNodeIfUnreferenced(removedNodeId);
+    const updated = this.featureStore.update(featureId, {
+      primitiveRefs: { ...feature.primitiveRefs, nodeIds: way.nodes }
+    });
+    this.afterGeometryUpdate(updated, wayId);
+    return updated;
+  }
+
+  moveVertex(featureId: string, vertexIndex: number, coordinate: Coordinate): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const nodeId = getEditableNodeIds(feature)[vertexIndex];
+    if (nodeId === undefined) {
+      throw new VertexEditError(`Vertex ${vertexIndex} does not exist`);
+    }
+
+    this.primitiveStore.updateNodeCoordinate(nodeId, coordinate);
+    const updated = this.featureStore.update(featureId, {});
+    this.events.emit("nodeMoved", { nodeId });
+    this.afterGeometryUpdate(updated, feature.primitiveRefs.wayId);
+    return updated;
+  }
+
+  insertVertex(featureId: string, edgeIndex: number, coordinate: Coordinate): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const wayId = this.requireFeatureWayId(feature);
+    const editableNodeIds = getEditableNodeIds(feature);
+    if (edgeIndex < 0 || edgeIndex >= editableNodeIds.length) {
+      throw new VertexEditError(`Edge ${edgeIndex} does not exist`);
+    }
+
+    const node = this.primitiveStore.createNode({ lat: coordinate.lat, lon: coordinate.lon });
+    const nextNodeIds = [
+      ...editableNodeIds.slice(0, edgeIndex + 1),
+      node.id,
+      ...editableNodeIds.slice(edgeIndex + 1)
+    ];
+    const way = this.primitiveStore.updateWayNodes(wayId, nextNodeIds);
+    const updated = this.featureStore.update(featureId, {
+      primitiveRefs: { ...feature.primitiveRefs, nodeIds: way.nodes }
+    });
+    this.afterGeometryUpdate(updated, wayId);
+    return updated;
+  }
+
+  moveFeature(featureId: string, delta: CoordinateDelta): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const movedNodeIds = uniqueNodeIds(feature.primitiveRefs.nodeIds);
+    for (const nodeId of movedNodeIds) {
+      const node = this.primitiveStore.getNode(nodeId);
+      if (!node) {
+        throw new VertexEditError(`Node ${nodeId} does not exist`);
+      }
+      this.primitiveStore.updateNodeCoordinate(nodeId, translateCoordinate(node, delta));
+      this.events.emit("nodeMoved", { nodeId });
+    }
+
+    const updated = this.featureStore.update(featureId, {});
+    this.afterGeometryUpdate(updated, feature.primitiveRefs.wayId);
+    return updated;
   }
 
   getState(): Readonly<EditorStateSnapshot> {
@@ -284,6 +427,71 @@ class HeadlessIndoorEditor implements IndoorEditor {
     this.draft = undefined;
     this.adapter?.clearTemporaryFeature("draft");
   }
+
+  private requireFeature(featureId: string): FeatureRecord {
+    const feature = this.featureStore.get(featureId);
+    if (!feature) {
+      throw new VertexEditError(`Feature ${featureId} does not exist`);
+    }
+    return feature;
+  }
+
+  private requireFeatureWayId(feature: FeatureRecord): number {
+    if (feature.primitiveRefs.wayId === undefined) {
+      throw new VertexEditError(`Feature ${feature.id} is not backed by a way`);
+    }
+    return feature.primitiveRefs.wayId;
+  }
+
+  private refreshFeatureHandles(featureId: string): void {
+    const feature = this.requireFeature(featureId);
+    const handles = getEditableNodeIds(feature).map((nodeId, index) => {
+      const node = this.primitiveStore.getNode(nodeId);
+      if (!node) {
+        throw new VertexEditError(`Node ${nodeId} does not exist`);
+      }
+      return {
+        id: `${featureId}-vertex-${index}`,
+        coordinate: { lat: node.lat, lon: node.lon }
+      };
+    });
+    this.adapter?.showVertexHandles(featureId, handles);
+  }
+
+  private afterGeometryUpdate(feature: FeatureRecord, wayId?: number): void {
+    this.adapter?.updateFeature(feature);
+    if (this.selectedFeatureId === feature.id) {
+      this.refreshFeatureHandles(feature.id);
+    }
+    if (wayId !== undefined) {
+      this.events.emit("wayUpdated", { wayId });
+    }
+    this.events.emit("featureUpdated", { featureId: feature.id });
+  }
+
+  private deleteNodeIfUnreferenced(nodeId: number): void {
+    try {
+      this.primitiveStore.deleteElement("node", nodeId);
+    } catch {
+      return;
+    }
+  }
+}
+
+function getEditableNodeIds(feature: FeatureRecord): number[] {
+  const nodeIds = feature.primitiveRefs.nodeIds;
+  if (
+    feature.geometryType === "polygon" &&
+    nodeIds.length > 1 &&
+    nodeIds[0] === nodeIds[nodeIds.length - 1]
+  ) {
+    return nodeIds.slice(0, -1);
+  }
+  return [...nodeIds];
+}
+
+function uniqueNodeIds(nodeIds: readonly number[]): number[] {
+  return [...new Set(nodeIds)];
 }
 
 function immutableSnapshot<T>(value: T): Readonly<T> {

@@ -33,7 +33,10 @@ describe("FakeRendererAdapter", () => {
 
     editor.destroy();
 
-    expect(adapter.calls.map((call) => call.name)).toEqual(["attach", "on", "off", "detach"]);
+    expect(adapter.calls[0]?.name).toBe("attach");
+    expect(adapter.calls.filter((call) => call.name === "on")).toHaveLength(5);
+    expect(adapter.calls.filter((call) => call.name === "off")).toHaveLength(5);
+    expect(adapter.calls.at(-1)?.name).toBe("detach");
     expect(adapter.calls[0]?.args).toEqual([target]);
     expect(adapter.attachedTarget).toBeUndefined();
   });
