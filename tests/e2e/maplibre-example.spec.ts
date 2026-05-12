@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("Leaflet example exposes host controls and export status", async ({ page }) => {
+test("MapLibre example exposes host controls and export status", async ({ page }) => {
   await page.goto("/");
 
+  await expect(page.getByText("MapLibre host controls")).toBeVisible();
   await expect(page.getByRole("button", { name: "Draw room" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Draw corridor" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Add POI" })).toBeVisible();
@@ -13,6 +14,7 @@ test("Leaflet example exposes host controls and export status", async ({ page })
   await expect(page.getByLabel("Snapping")).toBeVisible();
   await expect(page.getByLabel("Validation issues")).toBeVisible();
   await expect(page.getByLabel("Level")).toBeVisible();
+  await expect(page.getByText("Level 0 ready")).toBeVisible({ timeout: 10000 });
   await expect(page.getByLabel("Export JSON")).toContainText('"status": true');
 
   await page.getByLabel("Level").selectOption("1");
