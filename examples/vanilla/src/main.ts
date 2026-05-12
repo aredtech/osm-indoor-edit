@@ -1,6 +1,6 @@
 import type { EditorEventName, OsmInEditExport, ValidationResult } from "@osminedit-lib/core";
 
-export const sampleIndoorData = {
+export const sampleIndoorData: OsmInEditExport = {
   status: true,
   elements: [
     {
@@ -89,7 +89,7 @@ export const sampleIndoorData = {
       featureTypeId: 2
     }
   ]
-} satisfies OsmInEditExport;
+};
 
 export function formatJson(value: unknown): string {
   return JSON.stringify(value, null, 2);

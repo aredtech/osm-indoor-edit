@@ -1,8 +1,19 @@
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 import * as L from "leaflet";
-import { createEditor, type FeatureRecord } from "@osminedit-lib/core";
+import {
+  createEditor,
+  type EditorEventName,
+  type FeatureRecord,
+  type ValidationResult
+} from "@osminedit-lib/core";
 import { createLeafletAdapter } from "@osminedit-lib/leaflet";
+import {
+  eventLabel,
+  formatJson,
+  sampleIndoorData,
+  summarizeValidation
+} from "@osminedit-lib/example-vanilla";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
@@ -12,15 +23,22 @@ if (!app) {
 app.innerHTML = `
   <div id="map" class="map"></div>
   <section class="controls" aria-label="Map editing controls">
+    <div class="section-title">Host controls</div>
     <div class="button-grid">
       <button data-action="room">Draw room</button>
       <button data-action="corridor">Draw corridor</button>
       <button data-action="poi">Add POI</button>
       <button data-action="finish">Finish</button>
       <button data-action="cancel">Cancel</button>
+      <button data-action="load-sample">Load sample</button>
+      <button data-action="validate">Validate</button>
       <button data-action="delete-feature" class="danger">Delete feature</button>
       <button data-action="delete-vertex">Delete vertex</button>
     </div>
+    <label class="toggle">
+      <input data-role="snapping" type="checkbox" checked />
+      <span>Snapping</span>
+    </label>
     <label class="field">
       <span>Level</span>
       <select data-role="level">
@@ -35,9 +53,15 @@ app.innerHTML = `
     </label>
     <button data-action="apply-name">Apply name</button>
     <p class="status" data-role="status">Level 0 ready</p>
+    <ol class="event-log" data-role="events" aria-label="Recent events"></ol>
   </section>
+  <aside class="validation-panel" aria-label="Validation issues">
+    <h2>Validation issues</h2>
+    <p data-role="validation-summary">No validation run yet.</p>
+    <ul data-role="validation-issues"></ul>
+  </aside>
   <aside class="export-panel" aria-label="Export JSON">
-    <h1 data-role="export-heading">No features yet</h1>
+    <h1 data-role="export-heading">Export JSON</h1>
     <p data-role="empty-copy">Draw a room, corridor, or POI to populate export JSON.</p>
     <pre data-role="export" tabindex="0"></pre>
   </aside>
@@ -62,6 +86,7 @@ adapter.setLevel("0");
 let selectedFeatureId: string | null = null;
 let latestFeature: FeatureRecord | null = null;
 const emptyExport = { elements: [], status: true as const };
+const recentEvents: string[] = [];
 
 const status = document.querySelector<HTMLElement>('[data-role="status"]');
 const exportHeading = document.querySelector<HTMLElement>('[data-role="export-heading"]');
@@ -69,6 +94,10 @@ const emptyCopy = document.querySelector<HTMLElement>('[data-role="empty-copy"]'
 const exportOutput = document.querySelector<HTMLElement>('[data-role="export"]');
 const levelSelect = document.querySelector<HTMLSelectElement>('[data-role="level"]');
 const nameInput = document.querySelector<HTMLInputElement>('[data-role="name"]');
+const snappingInput = document.querySelector<HTMLInputElement>('[data-role="snapping"]');
+const validationSummary = document.querySelector<HTMLElement>('[data-role="validation-summary"]');
+const validationIssues = document.querySelector<HTMLElement>('[data-role="validation-issues"]');
+const eventLog = document.querySelector<HTMLElement>('[data-role="events"]');
 
 function setStatus(message: string): void {
   if (status) {
@@ -80,14 +109,45 @@ function renderExport(): void {
   const exported = editor.exportOsmInEdit();
   const data = exported.elements.length === 0 ? emptyExport : exported;
   if (exportOutput) {
-    exportOutput.textContent = JSON.stringify(data, null, 2);
+    exportOutput.textContent = formatJson(data);
   }
   if (exportHeading) {
-    exportHeading.textContent = exported.elements.length === 0 ? "No features yet" : "Export";
+    exportHeading.textContent = "Export JSON";
   }
   if (emptyCopy) {
     emptyCopy.hidden = exported.elements.length > 0;
   }
+}
+
+function renderValidation(result: ValidationResult): void {
+  const summary = summarizeValidation(result);
+  if (validationSummary) {
+    validationSummary.textContent = `${summary.total} total: ${summary.errors} errors, ${summary.warnings} warnings, ${summary.infos} info`;
+  }
+  if (validationIssues) {
+    validationIssues.innerHTML =
+      result.issues.length === 0
+        ? "<li>No issues found.</li>"
+        : result.issues
+            .map(
+              (issue) =>
+                `<li><strong>${issue.severity}</strong> ${issue.ruleId}: ${issue.message}</li>`
+            )
+            .join("");
+  }
+}
+
+function renderEvents(): void {
+  if (!eventLog) {
+    return;
+  }
+  eventLog.innerHTML = recentEvents.map((entry) => `<li>${entry}</li>`).join("");
+}
+
+function recordEvent(eventName: EditorEventName): void {
+  recentEvents.unshift(eventLabel(eventName));
+  recentEvents.splice(5);
+  renderEvents();
 }
 
 function runAction(action: string): void {
@@ -113,6 +173,17 @@ function runAction(action: string): void {
     if (action === "cancel") {
       editor.cancelDraw();
       setStatus(`Level ${editor.getLevel()} ready`);
+    }
+    if (action === "load-sample") {
+      editor.loadOsmInEdit(sampleIndoorData);
+      latestFeature = editor.getState().features[0] ?? null;
+      selectedFeatureId = latestFeature?.id ?? null;
+      editor.selectFeature(selectedFeatureId);
+      setStatus("Sample loaded");
+    }
+    if (action === "validate") {
+      renderValidation(editor.validate());
+      setStatus("Validation refreshed");
     }
     if (action === "delete-feature" && selectedFeatureId) {
       editor.deleteFeature(selectedFeatureId);
@@ -144,17 +215,48 @@ document.addEventListener("click", (event) => {
 
 levelSelect?.addEventListener("change", () => {
   editor.setLevel(levelSelect.value);
-  adapter.setLevel(levelSelect.value);
   setStatus(`Level ${levelSelect.value} ready`);
   renderExport();
 });
 
+snappingInput?.addEventListener("change", () => {
+  editor.setSnapping({ enabled: snappingInput.checked });
+  setStatus(`Snapping ${snappingInput.checked ? "enabled" : "disabled"}`);
+});
+
 editor.on("featureSelected", (event) => {
   selectedFeatureId = event.featureId;
+  latestFeature = event.featureId
+    ? editor.getState().features.find((feature) => feature.id === event.featureId) ?? null
+    : null;
+  if (nameInput) {
+    nameInput.value = latestFeature?.tags.name ?? "";
+  }
 });
 
 editor.on("featureCreated", (event) => {
   selectedFeatureId = event.featureId;
 });
+
+const trackedEvents = [
+  "ready",
+  "toolChanged",
+  "levelChanged",
+  "drawingStarted",
+  "drawingFinished",
+  "featureCreated",
+  "featureSelected",
+  "featureUpdated",
+  "validationChanged",
+  "exportReady",
+  "error"
+] as const;
+
+for (const eventName of trackedEvents) {
+  editor.on(eventName, () => recordEvent(eventName));
+}
+
+editor.on("validationChanged", renderValidation);
+editor.on("error", (event) => setStatus(event.error.message));
 
 renderExport();

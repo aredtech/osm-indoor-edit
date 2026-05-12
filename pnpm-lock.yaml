@@ -32,6 +32,9 @@ importers:
       '@osminedit-lib/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@osminedit-lib/example-vanilla':
+        specifier: workspace:*
+        version: link:../vanilla
       '@osminedit-lib/leaflet':
         specifier: workspace:*
         version: link:../../packages/leaflet

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@osminedit-lib/core": "workspace:*",
+    "@osminedit-lib/example-vanilla": "workspace:*",
     "@osminedit-lib/leaflet": "workspace:*",
     "leaflet": "^1.9.4"
   }

@@ -9,6 +9,9 @@ export default defineConfig({
       ),
       "@osminedit-lib/leaflet": fileURLToPath(
         new URL("../../packages/leaflet/src/index.ts", import.meta.url)
+      ),
+      "@osminedit-lib/example-vanilla": fileURLToPath(
+        new URL("../vanilla/src/main.ts", import.meta.url)
       )
     }
   }

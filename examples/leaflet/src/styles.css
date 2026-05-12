@@ -20,6 +20,7 @@ body {
 }
 
 .controls,
+.validation-panel,
 .export-panel {
   position: absolute;
   z-index: 500;
@@ -34,6 +35,15 @@ body {
   left: 56px;
   width: min(280px, calc(100vw - 80px));
   padding: 16px;
+}
+
+.section-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: #5D6976;
 }
 
 .button-grid {
@@ -88,6 +98,16 @@ button[data-action="finish"] {
   color: #5D6976;
 }
 
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .field select,
 .field input,
 .controls > button {
@@ -104,6 +124,47 @@ button[data-action="finish"] {
   font-size: 14px;
   line-height: 1.4;
   color: #5D6976;
+}
+
+.event-log {
+  min-height: 72px;
+  max-height: 72px;
+  margin: 10px 0 0;
+  overflow: auto;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #5D6976;
+}
+
+.validation-panel {
+  left: 56px;
+  bottom: 24px;
+  width: min(280px, calc(100vw - 80px));
+  padding: 14px;
+}
+
+.validation-panel h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.validation-panel p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #5D6976;
+}
+
+.validation-panel ul {
+  min-height: 82px;
+  max-height: 120px;
+  margin: 0;
+  overflow: auto;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .export-panel {
@@ -145,6 +206,14 @@ button[data-action="finish"] {
     width: auto;
     max-height: 44vh;
     overflow: auto;
+  }
+
+  .validation-panel {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 28vh;
   }
 
   .export-panel {
