@@ -219,6 +219,11 @@ export class LeafletRendererAdapter implements RendererAdapter {
     };
   }
 
+  getTemporaryLayerCount(id: string): number {
+    const layer = this.temporaryLayers.get(id);
+    return layer instanceof L.LayerGroup ? layer.getLayers().length : layer ? 1 : 0;
+  }
+
   private bindMapEvent(
     leafletEventName: LeafletListener["eventName"],
     adapterEventName: "pointerDown" | "pointerMove" | "pointerUp"
@@ -234,24 +239,36 @@ export class LeafletRendererAdapter implements RendererAdapter {
   }
 
   private createTemporaryLayer(geometry: TemporaryGeometry): L.Layer {
+    const coordinates = geometry.coordinates.map(toLatLng);
+    const group = L.layerGroup([], { pane: this.paneName });
+
+    for (const coordinate of coordinates) {
+      group.addLayer(
+        L.circleMarker(coordinate, {
+          ...this.styles.draftVertex,
+          pane: this.paneName
+        })
+      );
+    }
+
     if (geometry.geometryType === "point") {
-      return L.circleMarker(toLatLng(geometry.coordinates[0] ?? { lat: 0, lon: 0 }), {
-        ...this.styles.draftVertex,
-        pane: this.paneName
-      });
+      return group;
     }
 
     if (geometry.geometryType === "polygon") {
-      return L.polygon(geometry.coordinates.map(toLatLng), {
+      const polygon: L.Polygon = L.polygon(coordinates, {
         ...this.styles.preview,
         pane: this.paneName
       });
+      group.addLayer(polygon);
+      return group;
     }
 
-    return L.polyline(geometry.coordinates.map(toLatLng), {
+    group.addLayer(L.polyline(coordinates, {
       ...this.styles.draftLine,
       pane: this.paneName
-    });
+    }));
+    return group;
   }
 
   private emit<TName extends keyof RendererAdapterEventMap>(
