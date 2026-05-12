@@ -55,7 +55,7 @@ Plans:
 Plans:
 - [x] 02-01: Leaflet adapter layer lifecycle and coordinate conversion
 - [x] 02-02: Drawing workflows for room, corridor, and POI
-- [ ] 02-03: Selection, vertex handles, geometry editing, and deletion
+- [x] 02-03: Selection, vertex handles, geometry editing, and deletion
 - [ ] 02-04: Indoor tags, level filtering, and Leaflet export verification
 
 ### Phase 3: Topology, Relations, and Validation
