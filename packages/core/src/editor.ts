@@ -430,6 +430,13 @@ class HeadlessIndoorEditor implements IndoorEditor {
   }
 
   loadOsmInEdit(data: OsmInEditExport): void {
+    for (const feature of this.featureStore.list()) {
+      this.adapter?.removeFeature(feature.id);
+    }
+    this.adapter?.clearVertexHandles();
+    this.adapter?.setSelectedFeature(null);
+    this.selectedFeatureId = null;
+
     const normalized = normalizeOsmInEditExport(data);
     const nextStore = new PrimitiveStore({ clock: this.clock, ids: this.ids });
     for (const element of normalized.elements) {
@@ -439,6 +446,9 @@ class HeadlessIndoorEditor implements IndoorEditor {
     nextStore.validateReferences();
     this.primitiveStore = nextStore;
     this.featureStore.rebuildFromElements(this.primitiveStore.getElements());
+    for (const feature of this.featureStore.list()) {
+      this.adapter?.commitFeature(this.withFeatureCoordinates(feature));
+    }
   }
 
   exportOsmInEdit(): OsmInEditExport {

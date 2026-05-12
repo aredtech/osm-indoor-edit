@@ -76,6 +76,10 @@ interface MapListener {
   layerId?: string;
 }
 
+type ActiveDrag =
+  | { kind: "vertex"; featureId: string; vertexIndex: number }
+  | { kind: "feature"; featureId: string; from: Coordinate };
+
 export interface MapLibreAdapterOptions {
   styles?: MapLibreEditingStyleOverrides;
   sourcePrefix?: string;
@@ -94,6 +98,7 @@ export class MapLibreRendererAdapter implements RendererAdapter {
   private readonly handles = new Map<string, VertexHandle[]>();
   private selectedFeatureId: string | null = null;
   private currentLevel: string | undefined;
+  private activeDrag: ActiveDrag | undefined;
 
   constructor(options: MapLibreAdapterOptions = {}) {
     this.sourcePrefix = options.sourcePrefix ?? "osminedit";
@@ -122,6 +127,7 @@ export class MapLibreRendererAdapter implements RendererAdapter {
     this.bindMapEvent("click", "pointerDown");
     this.bindMapEvent("mousemove", "pointerMove");
     this.bindMapEvent("mouseup", "pointerUp");
+    this.bindLayerEvents();
   }
 
   detach(): void {
@@ -155,6 +161,7 @@ export class MapLibreRendererAdapter implements RendererAdapter {
     this.handles.clear();
     this.selectedFeatureId = null;
     this.currentLevel = undefined;
+    this.activeDrag = undefined;
     this.map.dragPan?.enable();
     this.map = undefined;
   }
@@ -312,13 +319,122 @@ export class MapLibreRendererAdapter implements RendererAdapter {
     adapterEventName: "pointerDown" | "pointerMove" | "pointerUp"
   ): void {
     const handler = (event: Record<string, unknown>) => {
+      const coordinate = coordinateFromEvent(event);
+      this.handleDragMapEvent(mapEventName, coordinate, event);
       this.emit(adapterEventName, {
-        coordinate: coordinateFromEvent(event),
+        coordinate,
         originalEvent: event
       });
     };
     this.requireMap().on(mapEventName, handler);
     this.listeners.push({ eventName: mapEventName, handler });
+  }
+
+  private bindLayerEvents(): void {
+    for (const layerName of ["committed-fill", "committed-line", "committed-point"]) {
+      this.bindLayerEvent("click", layerName, (event) => {
+        const properties = this.featurePropertiesFromEvent(event, [this.layerId(layerName)]);
+        const featureId = stringProperty(properties, "featureId");
+        if (!featureId) {
+          return;
+        }
+        this.emit("featureClick", {
+          featureId,
+          coordinate: coordinateFromEvent(event),
+          originalEvent: event
+        });
+      });
+      this.bindLayerEvent("mousedown", layerName, (event) => {
+        const properties = this.featurePropertiesFromEvent(event, [this.layerId(layerName)]);
+        const featureId = stringProperty(properties, "featureId");
+        if (!featureId) {
+          return;
+        }
+        this.activeDrag = { kind: "feature", featureId, from: coordinateFromEvent(event) };
+        this.map?.dragPan?.disable();
+      });
+    }
+
+    this.bindLayerEvent("click", "handle-midpoint", (event) => {
+      const properties = this.featurePropertiesFromEvent(event, [this.layerId("handle-midpoint")]);
+      const featureId = stringProperty(properties, "featureId");
+      const edgeIndex = numberProperty(properties, "edgeIndex");
+      if (!featureId || edgeIndex === undefined) {
+        return;
+      }
+      this.emit("midpointClick", {
+        featureId,
+        edgeIndex,
+        coordinate: coordinateFromEvent(event),
+        originalEvent: event
+      });
+    });
+
+    this.bindLayerEvent("mousedown", "handle-vertex", (event) => {
+      const properties = this.featurePropertiesFromEvent(event, [this.layerId("handle-vertex")]);
+      const featureId = stringProperty(properties, "featureId");
+      const vertexIndex = numberProperty(properties, "vertexIndex");
+      if (!featureId || vertexIndex === undefined) {
+        return;
+      }
+      this.activeDrag = { kind: "vertex", featureId, vertexIndex };
+      this.map?.dragPan?.disable();
+    });
+  }
+
+  private bindLayerEvent(
+    eventName: string,
+    layerName: string,
+    handler: (event: Record<string, unknown>) => void
+  ): void {
+    const layerId = this.layerId(layerName);
+    this.requireMap().on(eventName, layerId, handler);
+    this.listeners.push({ eventName, layerId, handler });
+  }
+
+  private handleDragMapEvent(
+    eventName: string,
+    coordinate: Coordinate,
+    originalEvent: Record<string, unknown>
+  ): void {
+    if (!this.activeDrag) {
+      return;
+    }
+
+    if (this.activeDrag.kind === "vertex" && (eventName === "mousemove" || eventName === "mouseup")) {
+      this.emit("vertexDrag", {
+        featureId: this.activeDrag.featureId,
+        vertexIndex: this.activeDrag.vertexIndex,
+        coordinate,
+        originalEvent
+      });
+    }
+
+    if (this.activeDrag.kind === "feature" && eventName === "mouseup") {
+      this.emit("featureDrag", {
+        featureId: this.activeDrag.featureId,
+        from: this.activeDrag.from,
+        to: coordinate,
+        originalEvent
+      });
+    }
+
+    if (eventName === "mouseup") {
+      this.activeDrag = undefined;
+      this.map?.dragPan?.enable();
+    }
+  }
+
+  private featurePropertiesFromEvent(
+    event: Record<string, unknown>,
+    layers: string[]
+  ): Record<string, unknown> | undefined {
+    const eventFeatures = event.features as Array<{ properties?: Record<string, unknown> }> | undefined;
+    const eventProperties = eventFeatures?.[0]?.properties;
+    if (eventProperties) {
+      return eventProperties;
+    }
+    return this.map?.queryRenderedFeatures?.(event.point, { layers })[0]?.properties;
   }
 
   private createLayers(): Array<Record<string, unknown>> {
@@ -563,6 +679,16 @@ function coordinateFromEvent(event: Record<string, unknown>): Coordinate {
     return { lat: lngLat.lat, lon: lngLat.lng };
   }
   return { lat: 0, lon: 0 };
+}
+
+function stringProperty(properties: Record<string, unknown> | undefined, key: string): string | undefined {
+  const value = properties?.[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function numberProperty(properties: Record<string, unknown> | undefined, key: string): number | undefined {
+  const value = properties?.[key];
+  return typeof value === "number" ? value : undefined;
 }
 
 function midpointCoordinate(left: Coordinate, right: Coordinate): Coordinate {
