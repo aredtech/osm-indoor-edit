@@ -8,6 +8,7 @@ import {
   type EditorEventName
 } from "./events";
 import { FeatureStore, type FeatureRecord } from "./feature-store";
+import { normalizeOsmInEditExport } from "./import-export";
 import { ElementIdAllocator } from "./ids";
 import { PrimitiveStore } from "./primitive-store";
 import type { OsmElement, OsmInEditExport, Tags } from "./types";
@@ -135,8 +136,9 @@ class HeadlessIndoorEditor implements IndoorEditor {
   }
 
   loadOsmInEdit(data: OsmInEditExport): void {
+    const normalized = normalizeOsmInEditExport(data);
     const nextStore = new PrimitiveStore({ clock: this.clock, ids: this.ids });
-    for (const element of sortForImport(data.elements)) {
+    for (const element of normalized.elements) {
       nextStore.importElement(element);
     }
 
@@ -168,11 +170,6 @@ class HeadlessIndoorEditor implements IndoorEditor {
   ): void {
     this.events.off(eventName, handler);
   }
-}
-
-function sortForImport(elements: readonly OsmElement[]): OsmElement[] {
-  const rank = { node: 0, way: 1, relation: 2 } satisfies Record<OsmElement["type"], number>;
-  return [...elements].sort((left, right) => rank[left.type] - rank[right.type]);
 }
 
 function immutableSnapshot<T>(value: T): Readonly<T> {

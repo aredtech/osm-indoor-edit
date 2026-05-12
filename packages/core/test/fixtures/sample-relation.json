@@ -1,0 +1,61 @@
+{
+  "status": true,
+  "elements": [
+    {
+      "type": "node",
+      "id": 11,
+      "lat": 28.3918381,
+      "lon": 77.2923861,
+      "tags": {
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:41:38Z"
+    },
+    {
+      "type": "node",
+      "id": 12,
+      "lat": 28.3918382,
+      "lon": 77.2923862,
+      "tags": {
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:41:39Z"
+    },
+    {
+      "type": "node",
+      "id": 13,
+      "lat": 28.3918383,
+      "lon": 77.2923863,
+      "tags": {
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:41:40Z"
+    },
+    {
+      "type": "way",
+      "id": 20,
+      "nodes": [11, 12, 13, 11],
+      "tags": {
+        "indoor": "corridor",
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:41:41Z"
+    },
+    {
+      "type": "relation",
+      "id": 30,
+      "members": [
+        {
+          "type": "way",
+          "ref": 20,
+          "role": "outer"
+        }
+      ],
+      "tags": {
+        "type": "multipolygon",
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:41:42Z"
+    }
+  ]
+}

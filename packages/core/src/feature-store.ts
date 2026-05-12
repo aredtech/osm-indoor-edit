@@ -114,7 +114,7 @@ export class FeatureStore {
     this.clear();
 
     for (const element of elements) {
-      if (element.type === "node" && Object.keys(element.tags).length > 0) {
+      if (element.type === "node" && hasStandaloneFeatureTags(element.tags)) {
         this.add(featureFromNode(element));
       }
 
@@ -155,6 +155,10 @@ function featureFromNode(node: OsmNode): AddFeatureInput {
     tags: node.tags,
     primitiveRefs: { nodeIds: [node.id], relationIds: [] }
   };
+}
+
+function hasStandaloneFeatureTags(tags: Tags): boolean {
+  return Object.keys(tags).some((key) => key !== "level");
 }
 
 function featureFromWay(way: OsmWay): AddFeatureInput {

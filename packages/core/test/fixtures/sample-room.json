@@ -1,0 +1,57 @@
+{
+  "status": true,
+  "elements": [
+    {
+      "type": "node",
+      "id": 1,
+      "lat": 28.3918376,
+      "lon": 77.2923857,
+      "tags": {
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:40:38Z"
+    },
+    {
+      "type": "node",
+      "id": 2,
+      "lat": 28.3918377,
+      "lon": 77.2923858,
+      "tags": {
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:40:39Z"
+    },
+    {
+      "type": "node",
+      "id": 3,
+      "lat": 28.3918378,
+      "lon": 77.2923859,
+      "tags": {
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:40:40Z"
+    },
+    {
+      "type": "node",
+      "id": 4,
+      "lat": 28.3918379,
+      "lon": 77.292386,
+      "tags": {
+        "level": "0"
+      },
+      "timestamp": "2026-05-11T16:40:41Z"
+    },
+    {
+      "type": "way",
+      "id": 10,
+      "nodes": [1, 2, 3, 4, 1],
+      "tags": {
+        "indoor": "room",
+        "level": "0",
+        "name": "Room 101"
+      },
+      "timestamp": "2026-05-11T16:40:42Z",
+      "featureTypeId": 1
+    }
+  ]
+}

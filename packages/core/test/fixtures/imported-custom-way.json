@@ -1,0 +1,45 @@
+{
+  "status": true,
+  "elements": [
+    {
+      "type": "node",
+      "id": 21,
+      "lat": 28.3918391,
+      "lon": 77.2923871,
+      "tags": {
+        "level": "1"
+      },
+      "timestamp": "2026-05-11T16:42:38Z"
+    },
+    {
+      "type": "node",
+      "id": 22,
+      "lat": 28.3918392,
+      "lon": 77.2923872,
+      "tags": {
+        "level": "1"
+      },
+      "timestamp": "2026-05-11T16:42:39Z"
+    },
+    {
+      "type": "node",
+      "id": 23,
+      "lat": 28.3918393,
+      "lon": 77.2923873,
+      "tags": {
+        "level": "1"
+      },
+      "timestamp": "2026-05-11T16:42:40Z"
+    },
+    {
+      "type": "way",
+      "id": 40,
+      "nodes": [21, 22, 23],
+      "tags": {
+        "level": "1",
+        "source": "legacy-indoor-line"
+      },
+      "timestamp": "2026-05-11T16:42:41Z"
+    }
+  ]
+}
