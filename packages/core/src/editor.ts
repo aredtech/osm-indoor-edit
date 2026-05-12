@@ -21,13 +21,14 @@ import {
   TypedEventEmitter,
   type EditorEventName
 } from "./events";
-import { FeatureStore, type FeatureRecord } from "./feature-store";
+import { FeatureStore, inferFeatureKind, type FeatureRecord } from "./feature-store";
 import { normalizeOsmInEditExport } from "./import-export";
 import { ElementIdAllocator } from "./ids";
 import { PrimitiveStore } from "./primitive-store";
+import type { CreateEditorRelationInput, RelationMemberInput, RelationMemberMatcher } from "./relations";
 import { DEFAULT_SNAP_TOLERANCE_PX, resolveSnapCandidate, type SnapSettings } from "./snapping";
 import { collectSnapCandidates } from "./topology";
-import type { OsmElement, OsmInEditExport, Tags } from "./types";
+import type { OsmElement, OsmInEditExport, OsmRelation, Tags } from "./types";
 
 export interface EditorOptions {
   adapter?: RendererAdapter;
@@ -60,6 +61,10 @@ export interface IndoorEditor {
   insertVertex(featureId: string, edgeIndex: number, coordinate: Coordinate): FeatureRecord;
   moveFeature(featureId: string, delta: CoordinateDelta): FeatureRecord;
   detachFeatureGeometry(featureId: string): FeatureRecord;
+  createRelation(input: CreateEditorRelationInput): FeatureRecord;
+  updateRelationTags(relationId: number, tags: Tags): FeatureRecord;
+  appendRelationMember(relationId: number, member: RelationMemberInput): FeatureRecord;
+  removeRelationMember(relationId: number, matcher: RelationMemberMatcher): FeatureRecord;
   setSnapping(options: boolean | Partial<SnapSettings>): void;
   getSnapping(): SnapSettings;
   getState(): Readonly<EditorStateSnapshot>;
@@ -354,6 +359,41 @@ class HeadlessIndoorEditor implements IndoorEditor {
     return updated;
   }
 
+  createRelation(input: CreateEditorRelationInput): FeatureRecord {
+    const relation = this.primitiveStore.createRelation({
+      members: input.members,
+      tags: input.tags
+    });
+    const feature = this.syncRelationFeature(relation);
+    this.events.emit("relationUpdated", { relationId: relation.id });
+    this.events.emit("featureUpdated", { featureId: feature.id });
+    return feature;
+  }
+
+  updateRelationTags(relationId: number, tags: Tags): FeatureRecord {
+    const relation = this.primitiveStore.updateElementTags("relation", relationId, tags) as OsmRelation;
+    const feature = this.syncRelationFeature(relation);
+    this.events.emit("relationUpdated", { relationId });
+    this.events.emit("featureUpdated", { featureId: feature.id });
+    return feature;
+  }
+
+  appendRelationMember(relationId: number, member: RelationMemberInput): FeatureRecord {
+    const relation = this.primitiveStore.appendRelationMember(relationId, member);
+    const feature = this.syncRelationFeature(relation);
+    this.events.emit("relationUpdated", { relationId });
+    this.events.emit("featureUpdated", { featureId: feature.id });
+    return feature;
+  }
+
+  removeRelationMember(relationId: number, matcher: RelationMemberMatcher): FeatureRecord {
+    const relation = this.primitiveStore.removeRelationMember(relationId, matcher);
+    const feature = this.syncRelationFeature(relation);
+    this.events.emit("relationUpdated", { relationId });
+    this.events.emit("featureUpdated", { featureId: feature.id });
+    return feature;
+  }
+
   setSnapping(options: boolean | Partial<SnapSettings>): void {
     this.snapping = normalizeSnapSettings(options);
     if (!this.snapping.enabled) {
@@ -612,6 +652,28 @@ class HeadlessIndoorEditor implements IndoorEditor {
       this.events.emit("featureUpdated", { featureId: feature.id });
     }
     this.events.emit("wayUpdated", { wayId });
+  }
+
+  private syncRelationFeature(relation: OsmRelation): FeatureRecord {
+    const existing = this.featureStore.findByRelationId(relation.id)[0];
+    const input = {
+      kind: inferFeatureKind(relation.tags),
+      geometryType: "relation" as const,
+      level: relation.tags.level,
+      tags: relation.tags,
+      primitiveRefs: {
+        nodeIds: relation.members
+          .filter((member) => member.type === "node")
+          .map((member) => member.ref),
+        relationIds: [relation.id]
+      }
+    };
+
+    if (existing) {
+      return this.featureStore.update(existing.id, input);
+    }
+
+    return this.featureStore.add(input);
   }
 
   private deleteNodeIfUnreferenced(nodeId: number): void {
