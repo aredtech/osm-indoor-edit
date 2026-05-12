@@ -1,5 +1,5 @@
 import type { Coordinate, RendererAdapter } from "./adapter";
-import { type Clock, systemClock } from "./clock";
+import { type Clock, systemClock, toIsoTimestamp } from "./clock";
 import {
   type CoordinateDelta,
   VertexEditError,
@@ -8,6 +8,7 @@ import {
 } from "./editing";
 import {
   createMinimumTags,
+  type DefaultTagsConfig,
   buildTemporaryGeometry,
   getMinimumPointCount,
   type DraftDrawingState,
@@ -23,7 +24,7 @@ import {
 } from "./events";
 import { FeatureStore, inferFeatureKind, type FeatureRecord } from "./feature-store";
 import { normalizeOsmInEditExport } from "./import-export";
-import { ElementIdAllocator } from "./ids";
+import { ElementIdAllocator, type ElementIdAllocatorOptions } from "./ids";
 import { PrimitiveStore } from "./primitive-store";
 import type { CreateEditorRelationInput, RelationMemberInput, RelationMemberMatcher } from "./relations";
 import { DEFAULT_SNAP_TOLERANCE_PX, resolveSnapCandidate, type SnapSettings } from "./snapping";
@@ -42,6 +43,8 @@ export interface EditorOptions {
   target?: unknown;
   clock?: Clock;
   ids?: ElementIdAllocator;
+  idStrategy?: ElementIdAllocator | ElementIdAllocatorOptions;
+  defaultTags?: DefaultTagsConfig;
   defaultLevel?: string;
   snapping?: boolean | Partial<SnapSettings>;
   validationRules?: ValidationRule[];
@@ -103,6 +106,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
   private readonly adapterUnsubscribers: Array<() => void> = [];
   private readonly clock: Clock;
   private readonly ids: ElementIdAllocator;
+  private readonly defaultTags?: DefaultTagsConfig;
   private level: string | undefined;
   private snapping: SnapSettings;
   private readonly validationRules: ValidationRule[];
@@ -112,7 +116,8 @@ class HeadlessIndoorEditor implements IndoorEditor {
 
   constructor(options: EditorOptions) {
     this.clock = options.clock ?? systemClock;
-    this.ids = options.ids ?? new ElementIdAllocator();
+    this.ids = resolveElementIdAllocator(options);
+    this.defaultTags = options.defaultTags;
     this.primitiveStore = new PrimitiveStore({ clock: this.clock, ids: this.ids });
     this.adapter = options.adapter;
     this.level = options.defaultLevel;
@@ -125,22 +130,34 @@ class HeadlessIndoorEditor implements IndoorEditor {
 
     if (this.adapter) {
       this.adapterUnsubscribers.push(
-        this.adapter.on("pointerDown", (event) => this.addDraftCoordinate(event.coordinate)),
-        this.adapter.on("featureClick", (event) => this.selectFeature(event.featureId)),
+        this.adapter.on("pointerDown", (event) =>
+          this.runAdapterMutation(() => this.addDraftCoordinate(event.coordinate))
+        ),
+        this.adapter.on("featureClick", (event) =>
+          this.runAdapterMutation(() => this.selectFeature(event.featureId))
+        ),
         this.adapter.on("vertexDrag", (event) =>
-          this.moveVertex(event.featureId, event.vertexIndex, event.coordinate)
+          this.runAdapterMutation(() =>
+            this.moveVertex(event.featureId, event.vertexIndex, event.coordinate)
+          )
         ),
         this.adapter.on("midpointClick", (event) =>
-          this.insertVertex(event.featureId, event.edgeIndex, event.coordinate)
+          this.runAdapterMutation(() =>
+            this.insertVertex(event.featureId, event.edgeIndex, event.coordinate)
+          )
         ),
         this.adapter.on("featureDrag", (event) =>
-          this.moveFeature(event.featureId, {
-            lat: event.to.lat - event.from.lat,
-            lon: event.to.lon - event.from.lon
-          })
+          this.runAdapterMutation(() =>
+            this.moveFeature(event.featureId, {
+              lat: event.to.lat - event.from.lat,
+              lon: event.to.lon - event.from.lon
+            })
+          )
         )
       );
     }
+
+    this.enqueueReadyEvent();
   }
 
   destroy(): void {
@@ -153,6 +170,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
     }
     this.adapter?.detach();
     this.destroyed = true;
+    this.events.emit("destroyed", { timestamp: toIsoTimestamp(this.clock) });
   }
 
   setLevel(level: string | undefined): void {
@@ -180,7 +198,10 @@ class HeadlessIndoorEditor implements IndoorEditor {
     this.draft = {
       kind,
       level: this.level,
-      tags: createMinimumTags(kind, this.level, options.tags),
+      tags: createMinimumTags(kind, this.level, {
+        ...resolveDefaultTags(this.defaultTags, kind, this.level),
+        ...(options.tags ?? {})
+      }),
       coordinates: [],
       nodeIds: []
     };
@@ -508,6 +529,29 @@ class HeadlessIndoorEditor implements IndoorEditor {
     this.events.emit("drawingUpdated", { pointCount: this.draft.coordinates.length });
   }
 
+  private enqueueReadyEvent(): void {
+    const emitReady = () => {
+      if (!this.destroyed) {
+        this.events.emit("ready", { timestamp: toIsoTimestamp(this.clock) });
+      }
+    };
+
+    if (typeof queueMicrotask === "function") {
+      queueMicrotask(emitReady);
+    } else {
+      Promise.resolve().then(emitReady);
+    }
+  }
+
+  private runAdapterMutation(action: () => void): void {
+    try {
+      action();
+    } catch (error) {
+      this.events.emit("error", { error: error instanceof Error ? error : new Error(String(error)) });
+      throw error;
+    }
+  }
+
   private finishPointDrawing(draft: DraftDrawingState): FeatureRecord {
     const coordinate = draft.coordinates[0];
     const snappedNodeId = draft.nodeIds?.[0];
@@ -774,6 +818,34 @@ function deepFreeze<T>(value: T): Readonly<T> {
   }
 
   return value as Readonly<T>;
+}
+
+function resolveElementIdAllocator(options: EditorOptions): ElementIdAllocator {
+  if (options.ids) {
+    return options.ids;
+  }
+
+  if (options.idStrategy instanceof ElementIdAllocator) {
+    return options.idStrategy;
+  }
+
+  return new ElementIdAllocator(options.idStrategy);
+}
+
+function resolveDefaultTags(
+  config: DefaultTagsConfig | undefined,
+  kind: DrawKind,
+  level: string
+): Tags {
+  if (!config) {
+    return {};
+  }
+
+  if (typeof config === "function") {
+    return config(kind, level);
+  }
+
+  return config[kind] ?? {};
 }
 
 function normalizeSnapSettings(options: boolean | Partial<SnapSettings> | undefined): SnapSettings {

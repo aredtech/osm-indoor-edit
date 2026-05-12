@@ -2,6 +2,9 @@ import type { Coordinate, TemporaryGeometry } from "./adapter";
 import type { PrimitiveId, Tags } from "./types";
 
 export type DrawKind = "room" | "corridor" | "poi";
+export type DefaultTagsConfig =
+  | Partial<Record<DrawKind, Tags>>
+  | ((kind: DrawKind, level: string) => Tags);
 
 export interface StartDrawOptions {
   tags?: Tags;

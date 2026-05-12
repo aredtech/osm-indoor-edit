@@ -155,6 +155,57 @@ describe("createMapLibreAdapter", () => {
 
     expect(adapter.getSourceData("snap").features).toEqual([]);
   });
+
+  it("applies POI and door style overrides", () => {
+    const map = new FakeMapLibreMap();
+    const adapter = createMapLibreAdapter({
+      styles: {
+        poi: { paint: { "circle-color": "#A855F7" } },
+        door: { paint: { "circle-color": "#EF4444" } },
+        selected: { line: { paint: { "line-width": 6 } } },
+        snapIndicator: { circle: { paint: { "circle-radius": 12 } } }
+      }
+    });
+
+    adapter.attach(map);
+    adapter.commitFeature({
+      id: "poi-feature",
+      kind: "poi",
+      geometryType: "point",
+      level: "0",
+      tags: { amenity: "bench", level: "0" },
+      primitiveRefs: { nodeIds: [1], relationIds: [] },
+      coordinates: [{ lat: 1, lon: 2 }]
+    });
+    adapter.commitFeature({
+      id: "door-feature",
+      kind: "door",
+      geometryType: "point",
+      level: "0",
+      tags: { door: "yes", level: "0" },
+      primitiveRefs: { nodeIds: [2], relationIds: [] },
+      coordinates: [{ lat: 3, lon: 4 }]
+    });
+
+    expect(map.getLayer("osminedit-committed-poi")?.paint).toMatchObject({
+      "circle-color": "#A855F7",
+      "circle-radius": 6
+    });
+    expect(map.getLayer("osminedit-committed-door")?.paint).toMatchObject({
+      "circle-color": "#EF4444",
+      "circle-radius": 6
+    });
+    expect(map.getLayer("osminedit-selection-line")?.paint).toMatchObject({
+      "line-width": 6
+    });
+    expect(map.getLayer("osminedit-snap-point")?.paint).toMatchObject({
+      "circle-radius": 12
+    });
+    expect(adapter.getSourceData("committed").features.map((item) => item.properties)).toEqual([
+      expect.objectContaining({ isPoi: true }),
+      expect.objectContaining({ isDoor: true })
+    ]);
+  });
 });
 
 function createAttachedAdapter() {

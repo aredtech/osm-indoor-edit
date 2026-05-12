@@ -303,6 +303,8 @@ export class MapLibreRendererAdapter implements RendererAdapter {
       "draft-vertex",
       "committed-fill",
       "committed-line",
+      "committed-door",
+      "committed-poi",
       "committed-point",
       "selection-fill",
       "selection-line",
@@ -464,6 +466,16 @@ export class MapLibreRendererAdapter implements RendererAdapter {
         ["geometry-type"],
         ["literal", ["LineString", "Polygon"]]
       ]),
+      this.layer("committed-door", "circle", "committed", this.styles.door.paint, [
+        "==",
+        ["get", "isDoor"],
+        true
+      ]),
+      this.layer("committed-poi", "circle", "committed", this.styles.poi.paint, [
+        "==",
+        ["get", "isPoi"],
+        true
+      ]),
       this.layer("committed-point", "circle", "committed", this.styles.committed.circle.paint, [
         "==",
         ["geometry-type"],
@@ -614,7 +626,13 @@ function featuresForFeature(feature: FeatureRecord, role: "committed" | "selecti
     featureId: feature.id,
     geometryType: feature.geometryType,
     kind: feature.kind,
-    level: feature.level ?? feature.tags.level
+    level: feature.level ?? feature.tags.level,
+    isDoor: feature.kind === "door" || feature.tags.door !== undefined,
+    isPoi:
+      feature.kind === "poi" ||
+      feature.tags.amenity !== undefined ||
+      feature.tags.shop !== undefined ||
+      feature.tags.office !== undefined
   };
   const coordinates = feature.coordinates ?? [];
   if (feature.geometryType === "point") {

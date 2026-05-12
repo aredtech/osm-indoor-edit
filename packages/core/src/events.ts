@@ -4,6 +4,7 @@ import type { ValidationIssue } from "./validation";
 
 export interface EditorEventMap {
   ready: { timestamp: string };
+  destroyed: { timestamp: string };
   toolChanged: { tool: string | null };
   levelChanged: { level: string | undefined; previousLevel: string | undefined };
   drawingStarted: { kind: string };

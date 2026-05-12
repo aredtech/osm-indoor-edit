@@ -70,6 +70,60 @@ describe("editor drawing lifecycle", () => {
     ]);
   });
 
+  it("applies defaultTags while preserving required indoor and level values", () => {
+    const adapter = new FakeRendererAdapter();
+    const editor = createEditor({
+      adapter,
+      target: { id: "map" },
+      defaultLevel: "0",
+      defaultTags: {
+        room: {
+          source: "survey",
+          survey: "yes",
+          level: "should-not-win",
+          indoor: "should-not-win"
+        }
+      }
+    });
+
+    editor.startDraw("room", { tags: { source: "host", name: "Room 1" } });
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 3, lon: 4 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 5, lon: 6 } });
+    const feature = editor.finishDraw();
+
+    expect(feature.tags).toEqual({
+      indoor: "room",
+      level: "0",
+      source: "host",
+      survey: "yes",
+      name: "Room 1"
+    });
+  });
+
+  it("supports idStrategy options for local numeric IDs", () => {
+    const adapter = new FakeRendererAdapter();
+    const editor = createEditor({
+      adapter,
+      target: { id: "map" },
+      defaultLevel: "0",
+      idStrategy: { nodeStart: 501, wayStart: 601, relationStart: 701 }
+    });
+
+    editor.startDraw("room");
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 3, lon: 4 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 5, lon: 6 } });
+    editor.finishDraw();
+
+    expect(editor.exportOsmInEdit().elements).toMatchObject([
+      { type: "node", id: 501 },
+      { type: "node", id: 502 },
+      { type: "node", id: 503 },
+      { type: "way", id: 601, nodes: [501, 502, 503, 501] }
+    ]);
+  });
+
   it("rejects incomplete polygon finish without committing primitives", () => {
     const { adapter, editor } = createDrawingEditor();
 
