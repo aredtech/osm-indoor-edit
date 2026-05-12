@@ -20,12 +20,12 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "pnpm --filter @osminedit-lib/example-leaflet dev -- --port 5173",
+      command: "pnpm --filter @aredtech/osm-indoor-edit-example-leaflet dev -- --port 5173",
       url: "http://127.0.0.1:5173",
       reuseExistingServer: !process.env.CI
     },
     {
-      command: "pnpm --filter @osminedit-lib/example-maplibre dev",
+      command: "pnpm --filter @aredtech/osm-indoor-edit-example-maplibre dev",
       url: "http://127.0.0.1:5174",
       reuseExistingServer: !process.env.CI
     }

@@ -4,11 +4,11 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   resolve: {
     alias: {
-      "@osminedit-lib/core": fileURLToPath(new URL("./packages/core/src/index.ts", import.meta.url)),
-      "@osminedit-lib/leaflet": fileURLToPath(
+      "@aredtech/osm-indoor-edit": fileURLToPath(new URL("./packages/core/src/index.ts", import.meta.url)),
+      "@aredtech/osm-indoor-edit-leaflet": fileURLToPath(
         new URL("./packages/leaflet/src/index.ts", import.meta.url)
       ),
-      "@osminedit-lib/maplibre": fileURLToPath(
+      "@aredtech/osm-indoor-edit-maplibre": fileURLToPath(
         new URL("./packages/maplibre/src/index.ts", import.meta.url)
       )
     }

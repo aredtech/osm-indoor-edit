@@ -6,8 +6,8 @@ import type {
   ScreenPoint,
   TemporaryGeometry,
   VertexHandle
-} from "@osminedit-lib/core";
-import { isFeatureVisibleOnLevel, type FeatureRecord } from "@osminedit-lib/core";
+} from "@aredtech/osm-indoor-edit";
+import { isFeatureVisibleOnLevel, type FeatureRecord } from "@aredtech/osm-indoor-edit";
 import {
   type MapLibreEditingStyles,
   type MapLibreEditingStyleOverrides,

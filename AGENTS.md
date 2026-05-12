@@ -45,9 +45,9 @@ The library is for applications that want OsmInEdit-style editing power and outp
 ## Package Boundaries
 | Package | Responsibility |
 |---------|----------------|
-| `@osminedit-lib/core` | State model, primitives, feature model, IDs, levels, edit operations, validation, import/export, event emitter, renderer-agnostic adapter contracts. |
-| `@osminedit-lib/leaflet` | Leaflet adapter implementing map events, temporary layers, committed feature layers, vertex handles, and style translation. |
-| `@osminedit-lib/maplibre` | MapLibre adapter implementing sources/layers, click/drag handling, committed/temporary geometry rendering, and style translation. |
+| `@aredtech/osm-indoor-edit` | State model, primitives, feature model, IDs, levels, edit operations, validation, import/export, event emitter, renderer-agnostic adapter contracts. |
+| `@aredtech/osm-indoor-edit-leaflet` | Leaflet adapter implementing map events, temporary layers, committed feature layers, vertex handles, and style translation. |
+| `@aredtech/osm-indoor-edit-maplibre` | MapLibre adapter implementing sources/layers, click/drag handling, committed/temporary geometry rendering, and style translation. |
 | Examples | Thin host apps proving no fixed UI is required. |
 ## What Not To Use Initially
 - Framework wrappers: defer React/Angular/Vue until the headless API stabilizes.

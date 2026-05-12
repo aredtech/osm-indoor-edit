@@ -7,9 +7,9 @@ import type {
   TemporaryGeometry,
   VertexHandle,
   ResolvedSnap
-} from "@osminedit-lib/core";
-import type { FeatureRecord } from "@osminedit-lib/core";
-import { isFeatureVisibleOnLevel } from "@osminedit-lib/core";
+} from "@aredtech/osm-indoor-edit";
+import type { FeatureRecord } from "@aredtech/osm-indoor-edit";
+import { isFeatureVisibleOnLevel } from "@aredtech/osm-indoor-edit";
 import {
   type LeafletEditingStyles,
   mergeLeafletEditingStyles

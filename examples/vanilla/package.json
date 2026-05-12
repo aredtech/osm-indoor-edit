@@ -1,5 +1,5 @@
 {
-  "name": "@osminedit-lib/example-vanilla",
+  "name": "@aredtech/osm-indoor-edit-example-vanilla",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,6 +10,6 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
-    "@osminedit-lib/core": "workspace:*"
+    "@aredtech/osm-indoor-edit": "workspace:*"
   }
 }

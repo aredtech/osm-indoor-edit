@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { FeatureRecord } from "@osminedit-lib/core";
-import { createEditor, ElementIdAllocator, fixedClock } from "@osminedit-lib/core";
+import type { FeatureRecord } from "@aredtech/osm-indoor-edit";
+import { createEditor, ElementIdAllocator, fixedClock } from "@aredtech/osm-indoor-edit";
 import { createMapLibreAdapter } from "../src";
 import { FakeMapLibreMap, feature } from "./fake-maplibre-map";
 import { clickMap, createMapLibreDrawingEditor } from "./maplibre-drawing.test";

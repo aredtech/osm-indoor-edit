@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createEditor, ElementIdAllocator, fixedClock } from "@osminedit-lib/core";
+import { createEditor, ElementIdAllocator, fixedClock } from "@aredtech/osm-indoor-edit";
 import { createMapLibreAdapter } from "../src";
 import { FakeMapLibreMap } from "./fake-maplibre-map";
 

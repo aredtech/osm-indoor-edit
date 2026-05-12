@@ -1,5 +1,5 @@
 {
-  "name": "@osminedit-lib/example-maplibre",
+  "name": "@aredtech/osm-indoor-edit-example-maplibre",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,9 +8,9 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@osminedit-lib/core": "workspace:*",
-    "@osminedit-lib/example-vanilla": "workspace:*",
-    "@osminedit-lib/maplibre": "workspace:*",
+    "@aredtech/osm-indoor-edit": "workspace:*",
+    "@aredtech/osm-indoor-edit-example-vanilla": "workspace:*",
+    "@aredtech/osm-indoor-edit-maplibre": "workspace:*",
     "maplibre-gl": "^5.0.0"
   }
 }

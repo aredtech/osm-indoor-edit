@@ -17,9 +17,9 @@ The primary v1 interchange format is OsmInEdit-style JSON:
 
 ## Packages
 
-- `@osminedit-lib/core` - renderer-neutral editor state, drawing/editing APIs, import/export, validation, events, and adapter contracts.
-- `@osminedit-lib/leaflet` - Leaflet adapter for SDK-owned map editing visuals and pointer behavior.
-- `@osminedit-lib/maplibre` - MapLibre adapter for SDK-owned sources/layers, editing visuals, and pointer behavior.
+- `@aredtech/osm-indoor-edit` - renderer-neutral editor state, drawing/editing APIs, import/export, validation, events, and adapter contracts.
+- `@aredtech/osm-indoor-edit-leaflet` - Leaflet adapter for SDK-owned map editing visuals and pointer behavior.
+- `@aredtech/osm-indoor-edit-maplibre` - MapLibre adapter for SDK-owned sources/layers, editing visuals, and pointer behavior.
 
 ## Quick start
 

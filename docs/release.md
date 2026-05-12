@@ -30,10 +30,10 @@ actual npm publish is manual. A human should review package metadata, changelog/
 
 ## Package checklist
 
-- `@osminedit-lib/core`, `@osminedit-lib/leaflet`, and `@osminedit-lib/maplibre` expose `main`, `types`, `exports`, `files`, and `sideEffects`.
-- `@osminedit-lib/core` has no Leaflet or MapLibre runtime dependency.
-- `@osminedit-lib/leaflet` keeps `leaflet` as a peer dependency.
-- `@osminedit-lib/maplibre` keeps `maplibre-gl` as a peer dependency.
+- `@aredtech/osm-indoor-edit`, `@aredtech/osm-indoor-edit-leaflet`, and `@aredtech/osm-indoor-edit-maplibre` expose `main`, `types`, `exports`, `files`, and `sideEffects`.
+- `@aredtech/osm-indoor-edit` has no Leaflet or MapLibre runtime dependency.
+- `@aredtech/osm-indoor-edit-leaflet` keeps `leaflet` as a peer dependency.
+- `@aredtech/osm-indoor-edit-maplibre` keeps `maplibre-gl` as a peer dependency.
 - Example packages remain private and are not release targets.
 
 ## Commands

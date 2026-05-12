@@ -6,14 +6,14 @@ import {
   type EditorEventName,
   type FeatureRecord,
   type ValidationResult
-} from "@osminedit-lib/core";
-import { createLeafletAdapter } from "@osminedit-lib/leaflet";
+} from "@aredtech/osm-indoor-edit";
+import { createLeafletAdapter } from "@aredtech/osm-indoor-edit-leaflet";
 import {
   eventLabel,
   formatJson,
   sampleIndoorData,
   summarizeValidation
-} from "@osminedit-lib/example-vanilla";
+} from "@aredtech/osm-indoor-edit-example-vanilla";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {

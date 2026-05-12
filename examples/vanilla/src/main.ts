@@ -1,4 +1,4 @@
-import type { EditorEventName, OsmInEditExport, ValidationResult } from "@osminedit-lib/core";
+import type { EditorEventName, OsmInEditExport, ValidationResult } from "@aredtech/osm-indoor-edit";
 
 export const sampleIndoorData: OsmInEditExport = {
   status: true,

@@ -29,13 +29,13 @@ importers:
 
   examples/leaflet:
     dependencies:
-      '@osminedit-lib/core':
+      '@aredtech/osm-indoor-edit':
         specifier: workspace:*
         version: link:../../packages/core
-      '@osminedit-lib/example-vanilla':
+      '@aredtech/osm-indoor-edit-example-vanilla':
         specifier: workspace:*
         version: link:../vanilla
-      '@osminedit-lib/leaflet':
+      '@aredtech/osm-indoor-edit-leaflet':
         specifier: workspace:*
         version: link:../../packages/leaflet
       leaflet:
@@ -44,13 +44,13 @@ importers:
 
   examples/maplibre:
     dependencies:
-      '@osminedit-lib/core':
+      '@aredtech/osm-indoor-edit':
         specifier: workspace:*
         version: link:../../packages/core
-      '@osminedit-lib/example-vanilla':
+      '@aredtech/osm-indoor-edit-example-vanilla':
         specifier: workspace:*
         version: link:../vanilla
-      '@osminedit-lib/maplibre':
+      '@aredtech/osm-indoor-edit-maplibre':
         specifier: workspace:*
         version: link:../../packages/maplibre
       maplibre-gl:
@@ -59,7 +59,7 @@ importers:
 
   examples/vanilla:
     dependencies:
-      '@osminedit-lib/core':
+      '@aredtech/osm-indoor-edit':
         specifier: workspace:*
         version: link:../../packages/core
 
@@ -67,7 +67,7 @@ importers:
 
   packages/leaflet:
     dependencies:
-      '@osminedit-lib/core':
+      '@aredtech/osm-indoor-edit':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -80,7 +80,7 @@ importers:
 
   packages/maplibre:
     dependencies:
-      '@osminedit-lib/core':
+      '@aredtech/osm-indoor-edit':
         specifier: workspace:*
         version: link:../core
     devDependencies:

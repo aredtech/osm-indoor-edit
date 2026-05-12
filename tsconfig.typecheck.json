@@ -4,10 +4,10 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "@osminedit-lib/core": ["packages/core/src/index.ts"],
-      "@osminedit-lib/example-vanilla": ["examples/vanilla/src/main.ts"],
-      "@osminedit-lib/leaflet": ["packages/leaflet/src/index.ts"],
-      "@osminedit-lib/maplibre": ["packages/maplibre/src/index.ts"]
+      "@aredtech/osm-indoor-edit": ["packages/core/src/index.ts"],
+      "@aredtech/osm-indoor-edit-example-vanilla": ["examples/vanilla/src/main.ts"],
+      "@aredtech/osm-indoor-edit-leaflet": ["packages/leaflet/src/index.ts"],
+      "@aredtech/osm-indoor-edit-maplibre": ["packages/maplibre/src/index.ts"]
     }
   },
   "include": [

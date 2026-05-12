@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import * as L from "leaflet";
 import { afterEach, describe, expect, it } from "vitest";
-import { createEditor } from "@osminedit-lib/core";
+import { createEditor } from "@aredtech/osm-indoor-edit";
 import { createLeafletAdapter } from "../src";
 
 const maps: L.Map[] = [];

@@ -51,7 +51,7 @@ const corePackage = await readJson("packages/core/package.json");
 for (const dependency of dependencyNames(corePackage)) {
   assert(
     !rendererPackages.includes(dependency),
-    `@osminedit-lib/core must not depend on renderer package ${dependency}`
+    `@aredtech/osm-indoor-edit must not depend on renderer package ${dependency}`
   );
 }
 
@@ -68,13 +68,13 @@ for (const file of await listTypeScriptFiles(coreSrcDir)) {
 const leafletPackage = await readJson("packages/leaflet/package.json");
 assert(
   leafletPackage.peerDependencies?.leaflet,
-  "@osminedit-lib/leaflet must list leaflet in peerDependencies"
+  "@aredtech/osm-indoor-edit-leaflet must list leaflet in peerDependencies"
 );
 
 const maplibrePackage = await readJson("packages/maplibre/package.json");
 assert(
   maplibrePackage.peerDependencies?.["maplibre-gl"],
-  "@osminedit-lib/maplibre must list maplibre-gl in peerDependencies"
+  "@aredtech/osm-indoor-edit-maplibre must list maplibre-gl in peerDependencies"
 );
 
 console.log("Core boundary check passed: packages/core/src is renderer-free.");

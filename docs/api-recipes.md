@@ -5,7 +5,7 @@ These recipes use the public TypeScript API directly. Host applications own the 
 ## Create an editor
 
 ```ts
-import { createEditor } from "@osminedit-lib/core";
+import { createEditor } from "@aredtech/osm-indoor-edit";
 
 const editor = createEditor({
   defaultLevel: "0"
@@ -20,8 +20,8 @@ editor.on("ready", () => {
 
 ```ts
 import * as L from "leaflet";
-import { createEditor } from "@osminedit-lib/core";
-import { createLeafletAdapter } from "@osminedit-lib/leaflet";
+import { createEditor } from "@aredtech/osm-indoor-edit";
+import { createLeafletAdapter } from "@aredtech/osm-indoor-edit-leaflet";
 
 const map = L.map("map", {
   center: [57.7089, 11.9746],
@@ -41,8 +41,8 @@ const editor = createEditor({
 
 ```ts
 import maplibregl from "maplibre-gl";
-import { createEditor } from "@osminedit-lib/core";
-import { createMapLibreAdapter } from "@osminedit-lib/maplibre";
+import { createEditor } from "@aredtech/osm-indoor-edit";
+import { createMapLibreAdapter } from "@aredtech/osm-indoor-edit-maplibre";
 
 const map = new maplibregl.Map({
   container: "map",
@@ -107,7 +107,7 @@ for (const issue of result.issues) {
 ## Load OsmInEdit JSON
 
 ```ts
-import type { OsmInEditExport } from "@osminedit-lib/core";
+import type { OsmInEditExport } from "@aredtech/osm-indoor-edit";
 
 const data: OsmInEditExport = {
   elements: [],

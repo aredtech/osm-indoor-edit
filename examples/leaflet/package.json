@@ -1,5 +1,5 @@
 {
-  "name": "@osminedit-lib/example-leaflet",
+  "name": "@aredtech/osm-indoor-edit-example-leaflet",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,9 +8,9 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@osminedit-lib/core": "workspace:*",
-    "@osminedit-lib/example-vanilla": "workspace:*",
-    "@osminedit-lib/leaflet": "workspace:*",
+    "@aredtech/osm-indoor-edit": "workspace:*",
+    "@aredtech/osm-indoor-edit-example-vanilla": "workspace:*",
+    "@aredtech/osm-indoor-edit-leaflet": "workspace:*",
     "leaflet": "^1.9.4"
   }
 }

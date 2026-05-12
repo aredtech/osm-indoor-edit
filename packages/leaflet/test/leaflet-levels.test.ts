@@ -2,7 +2,7 @@
 import * as L from "leaflet";
 import { afterEach, describe, expect, it } from "vitest";
 import { createLeafletAdapter } from "../src";
-import type { FeatureRecord } from "@osminedit-lib/core";
+import type { FeatureRecord } from "@aredtech/osm-indoor-edit";
 
 const maps: L.Map[] = [];
 

@@ -7,14 +7,14 @@ import {
   type FeatureRecord,
   type IndoorEditor,
   type ValidationResult
-} from "@osminedit-lib/core";
-import { createMapLibreAdapter } from "@osminedit-lib/maplibre";
+} from "@aredtech/osm-indoor-edit";
+import { createMapLibreAdapter } from "@aredtech/osm-indoor-edit-maplibre";
 import {
   eventLabel,
   formatJson,
   sampleIndoorData,
   summarizeValidation
-} from "@osminedit-lib/example-vanilla";
+} from "@aredtech/osm-indoor-edit-example-vanilla";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {

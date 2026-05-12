@@ -1,5 +1,5 @@
 {
-  "name": "@osminedit-lib/maplibre",
+  "name": "@aredtech/osm-indoor-edit-maplibre",
   "version": "0.0.0",
   "private": false,
   "type": "module",
@@ -15,6 +15,9 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "sideEffects": false,
   "scripts": {
     "build": "tsc -b",
@@ -24,7 +27,7 @@
     "maplibre-gl": "^5.0.0"
   },
   "dependencies": {
-    "@osminedit-lib/core": "workspace:*"
+    "@aredtech/osm-indoor-edit": "workspace:*"
   },
   "devDependencies": {
     "maplibre-gl": "^5.0.0"
