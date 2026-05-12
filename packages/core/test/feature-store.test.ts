@@ -29,7 +29,34 @@ describe("FeatureStore", () => {
   it("infers room, corridor, and custom feature kinds cautiously", () => {
     expect(inferFeatureKind({ indoor: "room" })).toBe("room");
     expect(inferFeatureKind({ indoor: "corridor" })).toBe("corridor");
+    expect(inferFeatureKind({ indoor: "level" })).toBe("floor-outline");
+    expect(inferFeatureKind({ building: "yes" })).toBe("building-outline");
+    expect(inferFeatureKind({ "building:part": "yes" })).toBe("building-outline");
     expect(inferFeatureKind({ highway: "service" })).toBe("custom");
+  });
+
+  it("rebuilds indoor=level and building-outline features from ways and relations", () => {
+    const store = new FeatureStore();
+
+    const features = store.rebuildFromElements([
+      { ...roomWay, id: 201, tags: { indoor: "level", level: "0" } },
+      {
+        type: "relation",
+        id: 300,
+        members: [{ type: "node", ref: 1, role: "label" }],
+        tags: { building: "yes", level: "0" },
+        timestamp: "2026-05-11T16:40:42Z"
+      }
+    ]);
+
+    expect(features).toMatchObject([
+      { kind: "floor-outline", primitiveRefs: { wayId: 201 } },
+      {
+        kind: "building-outline",
+        geometryType: "relation",
+        primitiveRefs: { nodeIds: [1], relationIds: [300] }
+      }
+    ]);
   });
 
   it("imports unknown ways as custom feature records", () => {

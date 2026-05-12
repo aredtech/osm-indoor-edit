@@ -52,6 +52,19 @@ describe("import/export fixtures", () => {
     });
   });
 
+  it("keeps relation-backed features in editor state without renderable geometry", () => {
+    const editor = createEditor();
+
+    editor.loadOsmInEdit(sampleRelation);
+
+    expect(editor.getState().features).toContainEqual(
+      expect.objectContaining({
+        geometryType: "relation",
+        primitiveRefs: expect.objectContaining({ relationIds: [30] })
+      })
+    );
+  });
+
   it("loads imported-custom-way.json as a custom feature", () => {
     const editor = createEditor();
 

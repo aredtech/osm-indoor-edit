@@ -174,6 +174,14 @@ export function inferFeatureKind(tags: Tags): FeatureKind {
     return "corridor";
   }
 
+  if (tags.indoor === "level") {
+    return "floor-outline";
+  }
+
+  if (tags.building !== undefined || tags["building:part"] !== undefined) {
+    return "building-outline";
+  }
+
   return "custom";
 }
 
