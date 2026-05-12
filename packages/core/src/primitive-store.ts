@@ -138,6 +138,32 @@ export class PrimitiveStore {
     return cloneElement(updated);
   }
 
+  insertNodeInWayEdge(
+    wayId: PrimitiveId,
+    edgeIndex: number,
+    coordinate: Coordinate
+  ): { node: OsmNode; way: OsmWay } {
+    const way = this.ways.get(wayId);
+    if (!way) {
+      throw new DataIntegrityError(`Way ${wayId} does not exist`);
+    }
+
+    if (edgeIndex < 0 || edgeIndex >= way.nodes.length - 1) {
+      throw new DataIntegrityError(`Edge ${edgeIndex} does not exist in way ${wayId}`);
+    }
+
+    const node = this.createNode({ lat: coordinate.lat, lon: coordinate.lon });
+    const editableNodes = isClosedAreaWay(way) && isClosedWay(way) ? way.nodes.slice(0, -1) : way.nodes;
+    const nextNodes = [
+      ...editableNodes.slice(0, edgeIndex + 1),
+      node.id,
+      ...editableNodes.slice(edgeIndex + 1)
+    ];
+    const updatedWay = this.updateWayNodes(wayId, nextNodes);
+
+    return { node, way: updatedWay };
+  }
+
   updateElementTags(type: OsmElement["type"], id: PrimitiveId, tags: Tags): OsmElement {
     if (type === "node") {
       const node = this.nodes.get(id);
@@ -194,6 +220,20 @@ export class PrimitiveStore {
     }
 
     return this.relations.delete(id);
+  }
+
+  getWaysReferencingNode(nodeId: PrimitiveId): OsmWay[] {
+    return [...this.ways.values()]
+      .filter((way) => way.nodes.includes(nodeId))
+      .map(cloneElement);
+  }
+
+  getElementsReferencingNode(nodeId: PrimitiveId): OsmElement[] {
+    const ways = this.getWaysReferencingNode(nodeId);
+    const relations = [...this.relations.values()].filter((relation) =>
+      relation.members.some((member) => member.type === "node" && member.ref === nodeId)
+    );
+    return [...ways, ...relations.map(cloneElement)];
   }
 
   getNode(id: PrimitiveId): OsmNode | undefined {

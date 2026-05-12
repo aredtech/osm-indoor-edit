@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SNAP_TOLERANCE_PX,
+  collectSnapCandidates,
   resolveSnapCandidate,
   type Coordinate,
   type ScreenPoint,
@@ -79,5 +80,50 @@ describe("resolveSnapCandidate", () => {
     ];
 
     expect(resolveSnapCandidate({ lat: 20, lon: 20 }, candidates, project, 5)).toBeUndefined();
+  });
+});
+
+describe("collectSnapCandidates", () => {
+  it("includes nodes and one candidate per editable edge", () => {
+    const candidates = collectSnapCandidates([
+      {
+        type: "node",
+        id: 1,
+        lat: 0,
+        lon: 0,
+        tags: {},
+        timestamp: "2026-05-12T09:00:00Z"
+      },
+      {
+        type: "node",
+        id: 2,
+        lat: 0,
+        lon: 10,
+        tags: {},
+        timestamp: "2026-05-12T09:00:00Z"
+      },
+      {
+        type: "node",
+        id: 3,
+        lat: 10,
+        lon: 10,
+        tags: {},
+        timestamp: "2026-05-12T09:00:00Z"
+      },
+      {
+        type: "way",
+        id: 10,
+        nodes: [1, 2, 3, 1],
+        tags: { indoor: "room" },
+        timestamp: "2026-05-12T09:00:00Z"
+      }
+    ]);
+
+    expect(candidates.filter((candidate) => candidate.kind === "node")).toHaveLength(3);
+    expect(candidates.filter((candidate) => candidate.kind === "edge")).toMatchObject([
+      { kind: "edge", wayId: 10, edgeIndex: 0, fromNodeId: 1, toNodeId: 2 },
+      { kind: "edge", wayId: 10, edgeIndex: 1, fromNodeId: 2, toNodeId: 3 },
+      { kind: "edge", wayId: 10, edgeIndex: 2, fromNodeId: 3, toNodeId: 1 }
+    ]);
   });
 });

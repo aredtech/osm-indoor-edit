@@ -150,6 +150,23 @@ describe("PrimitiveStore", () => {
     expect(updated.nodes).toEqual([1, 2, nodeD.id, 3, 1]);
   });
 
+  it("insertNodeInWayEdge inserts into a closed edge and preserves closure", () => {
+    const store = new PrimitiveStore({
+      ids: new ElementIdAllocator({ nodeStart: 100, wayStart: 200, relationStart: 300 }),
+      clock: fixedClock("2026-05-11T16:40:38.000Z")
+    });
+    store.importElement(nodeA);
+    store.importElement(nodeB);
+    store.importElement(nodeC);
+    store.importElement(closedWay);
+
+    const { node, way } = store.insertNodeInWayEdge(10, 1, { lat: 10, lon: 20 });
+
+    expect(node).toMatchObject({ id: 100, lat: 10, lon: 20 });
+    expect(way.nodes).toEqual([1, 2, 100, 3, 1]);
+    expect(store.getWay(10)?.nodes).toEqual([1, 2, 100, 3, 1]);
+  });
+
   it("updates element tags", () => {
     const store = new PrimitiveStore();
     store.importElement(nodeA);

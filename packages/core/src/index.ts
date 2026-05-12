@@ -12,6 +12,7 @@ export * from "./ids";
 export * from "./levels";
 export * from "./primitive-store";
 export * from "./snapping";
+export * from "./topology";
 export * from "./types";
 
 export const version = "0.0.0";
