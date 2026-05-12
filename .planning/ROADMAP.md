@@ -37,7 +37,7 @@ Plans:
 - [x] 01-01: Workspace, package, build, and test foundation
 - [x] 01-02: Primitive store, ID strategy, and OsmInEdit element types
 - [x] 01-03: Feature model, editor facade, events, and level state
-- [ ] 01-04: Import/export round-trip and fake adapter contract tests
+- [x] 01-04: Import/export round-trip and fake adapter contract tests
 
 ### Phase 2: Leaflet Editing MVP
 **Goal**: A host app can use the Leaflet adapter to draw rooms, corridors, and POIs, edit geometry/tags, and export updated OsmInEdit-style JSON.
