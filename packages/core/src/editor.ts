@@ -1,6 +1,14 @@
-import type { RendererAdapter } from "./adapter";
+import type { Coordinate, RendererAdapter } from "./adapter";
 import { type Clock, systemClock } from "./clock";
-import { UnsupportedOperationError } from "./errors";
+import {
+  createMinimumTags,
+  buildTemporaryGeometry,
+  getMinimumPointCount,
+  type DraftDrawingState,
+  type DrawKind,
+  type StartDrawOptions
+} from "./drawing";
+import { DrawingIntegrityError, UnsupportedOperationError } from "./errors";
 import {
   type EditorEventMap,
   type EventHandler,
@@ -32,9 +40,9 @@ export interface IndoorEditor {
   destroy(): void;
   setLevel(level: string | undefined): void;
   getLevel(): string | undefined;
-  startDraw(kind: string): never;
-  cancelDraw(): never;
-  finishDraw(): never;
+  startDraw(kind: DrawKind, options?: StartDrawOptions): void;
+  cancelDraw(): void;
+  finishDraw(): FeatureRecord;
   selectFeature(featureId: string | null): never;
   deleteFeature(featureId: string): never;
   updateTags(featureId: string, tags: Tags): never;
@@ -62,9 +70,11 @@ class HeadlessIndoorEditor implements IndoorEditor {
   private readonly featureStore = new FeatureStore();
   private readonly events = new TypedEventEmitter<EditorEventMap>();
   private readonly adapter?: RendererAdapter;
+  private readonly adapterUnsubscribers: Array<() => void> = [];
   private readonly clock: Clock;
   private readonly ids: ElementIdAllocator;
   private level: string | undefined;
+  private draft: DraftDrawingState | undefined;
   private destroyed = false;
 
   constructor(options: EditorOptions) {
@@ -77,6 +87,12 @@ class HeadlessIndoorEditor implements IndoorEditor {
     if (this.adapter && "target" in options) {
       this.adapter.attach(options.target);
     }
+
+    if (this.adapter) {
+      this.adapterUnsubscribers.push(
+        this.adapter.on("pointerDown", (event) => this.addDraftCoordinate(event.coordinate))
+      );
+    }
   }
 
   destroy(): void {
@@ -84,6 +100,9 @@ class HeadlessIndoorEditor implements IndoorEditor {
       return;
     }
 
+    for (const unsubscribe of this.adapterUnsubscribers.splice(0)) {
+      unsubscribe();
+    }
     this.adapter?.detach();
     this.destroyed = true;
   }
@@ -98,16 +117,53 @@ class HeadlessIndoorEditor implements IndoorEditor {
     return this.level;
   }
 
-  startDraw(_kind: string): never {
-    throw new UnsupportedOperationError("startDraw");
+  startDraw(kind: DrawKind, options: StartDrawOptions = {}): void {
+    if (!this.level) {
+      throw new DrawingIntegrityError("Select a level before drawing");
+    }
+
+    this.clearDraft();
+    this.draft = {
+      kind,
+      level: this.level,
+      tags: createMinimumTags(kind, this.level, options.tags),
+      coordinates: []
+    };
+    this.events.emit("toolChanged", { tool: kind });
+    this.events.emit("drawingStarted", { kind });
   }
 
-  cancelDraw(): never {
-    throw new UnsupportedOperationError("cancelDraw");
+  cancelDraw(): void {
+    if (!this.draft) {
+      return;
+    }
+
+    this.clearDraft();
+    this.events.emit("toolChanged", { tool: null });
+    this.events.emit("drawingCancelled", { reason: "cancelDraw" });
   }
 
-  finishDraw(): never {
-    throw new UnsupportedOperationError("finishDraw");
+  finishDraw(): FeatureRecord {
+    const draft = this.draft;
+    if (!draft) {
+      throw new DrawingIntegrityError("No active drawing");
+    }
+
+    if (draft.coordinates.length < getMinimumPointCount(draft.kind)) {
+      throw new DrawingIntegrityError(
+        draft.kind === "poi"
+          ? "Add a point before finishing this POI."
+          : "Add at least 3 points before finishing this polygon."
+      );
+    }
+
+    const feature = draft.kind === "poi" ? this.finishPointDrawing(draft) : this.finishWayDrawing(draft);
+    this.clearDraft();
+    this.adapter?.commitFeature(feature);
+    this.events.emit("toolChanged", { tool: null });
+    this.events.emit("drawingFinished", { featureId: feature.id });
+    this.events.emit("featureCreated", { featureId: feature.id });
+    return feature;
   }
 
   selectFeature(_featureId: string | null): never {
@@ -169,6 +225,64 @@ class HeadlessIndoorEditor implements IndoorEditor {
     handler: EventHandler<EditorEventMap[TName]>
   ): void {
     this.events.off(eventName, handler);
+  }
+
+  private addDraftCoordinate(coordinate: Coordinate): void {
+    if (!this.draft) {
+      return;
+    }
+
+    this.draft.coordinates.push(coordinate);
+    const geometry = buildTemporaryGeometry(this.draft);
+    if (geometry) {
+      this.adapter?.showTemporaryFeature("draft", geometry);
+    }
+    this.events.emit("drawingUpdated", { pointCount: this.draft.coordinates.length });
+  }
+
+  private finishPointDrawing(draft: DraftDrawingState): FeatureRecord {
+    const coordinate = draft.coordinates[0];
+    const node = this.primitiveStore.createNode({
+      lat: coordinate.lat,
+      lon: coordinate.lon,
+      tags: draft.tags
+    });
+
+    return this.featureStore.add({
+      kind: draft.kind,
+      geometryType: "point",
+      level: draft.level,
+      tags: draft.tags,
+      primitiveRefs: { nodeIds: [node.id], relationIds: [] }
+    });
+  }
+
+  private finishWayDrawing(draft: DraftDrawingState): FeatureRecord {
+    const nodes = draft.coordinates.map((coordinate) =>
+      this.primitiveStore.createNode({
+        lat: coordinate.lat,
+        lon: coordinate.lon,
+        tags: {}
+      })
+    );
+    const way = this.primitiveStore.createWay({
+      nodes: nodes.map((node) => node.id),
+      tags: draft.tags,
+      closed: true
+    });
+
+    return this.featureStore.add({
+      kind: draft.kind,
+      geometryType: "polygon",
+      level: draft.level,
+      tags: draft.tags,
+      primitiveRefs: { nodeIds: way.nodes, wayId: way.id, relationIds: [] }
+    });
+  }
+
+  private clearDraft(): void {
+    this.draft = undefined;
+    this.adapter?.clearTemporaryFeature("draft");
   }
 }
 

@@ -153,7 +153,6 @@ describe("createEditor", () => {
   it("throws UnsupportedOperationError for later-phase methods", () => {
     const editor = createEditor();
 
-    expect(() => editor.startDraw("room")).toThrow(UnsupportedOperationError);
     expect(() => editor.validate()).toThrow(UnsupportedOperationError);
   });
 });
