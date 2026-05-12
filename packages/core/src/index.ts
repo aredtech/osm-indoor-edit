@@ -11,6 +11,7 @@ export * from "./import-export";
 export * from "./ids";
 export * from "./levels";
 export * from "./primitive-store";
+export * from "./snapping";
 export * from "./types";
 
 export const version = "0.0.0";
