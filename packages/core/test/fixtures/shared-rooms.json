@@ -6,7 +6,7 @@
       "id": 1,
       "lat": 0,
       "lon": 0,
-      "tags": {},
+      "tags": { "level": "0" },
       "timestamp": "2026-05-12T09:00:00Z"
     },
     {
@@ -14,7 +14,7 @@
       "id": 2,
       "lat": 0,
       "lon": 10,
-      "tags": {},
+      "tags": { "level": "0" },
       "timestamp": "2026-05-12T09:00:00Z"
     },
     {
@@ -22,7 +22,7 @@
       "id": 3,
       "lat": 10,
       "lon": 10,
-      "tags": {},
+      "tags": { "level": "0" },
       "timestamp": "2026-05-12T09:00:00Z"
     },
     {
@@ -30,7 +30,7 @@
       "id": 4,
       "lat": 10,
       "lon": 0,
-      "tags": {},
+      "tags": { "level": "0" },
       "timestamp": "2026-05-12T09:00:00Z"
     },
     {
@@ -38,7 +38,7 @@
       "id": 5,
       "lat": 0,
       "lon": 20,
-      "tags": {},
+      "tags": { "level": "0" },
       "timestamp": "2026-05-12T09:00:00Z"
     },
     {
@@ -46,7 +46,7 @@
       "id": 6,
       "lat": 10,
       "lon": 20,
-      "tags": {},
+      "tags": { "level": "0" },
       "timestamp": "2026-05-12T09:00:00Z"
     },
     {
@@ -59,18 +59,20 @@
         "name": "Room A",
         "source:floorplan": "survey"
       },
-      "timestamp": "2026-05-12T09:00:00Z"
+      "timestamp": "2026-05-12T09:00:00Z",
+      "featureTypeId": 1
     },
     {
       "type": "way",
       "id": 11,
       "nodes": [2, 5, 6, 3, 2],
       "tags": {
-        "indoor": "room",
+        "indoor": "corridor",
         "level": "0",
-        "name": "Room B"
+        "name": "East corridor"
       },
-      "timestamp": "2026-05-12T09:00:00Z"
+      "timestamp": "2026-05-12T09:00:00Z",
+      "featureTypeId": 2
     }
   ]
 }
