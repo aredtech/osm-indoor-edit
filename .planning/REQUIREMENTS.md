@@ -26,37 +26,37 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **API-01**: Developer can create and destroy an editor instance using a small framework-independent API.
 - [ ] **API-02**: Developer can get and set the current indoor level.
-- [ ] **API-03**: Developer can start, cancel, and finish drawing for supported feature types.
-- [ ] **API-04**: Developer can select, delete, move, and update tags for created or imported features.
+- [x] **API-03**: Developer can start, cancel, and finish drawing for supported feature types.
+- [x] **API-04**: Developer can select, delete, move, and update tags for created or imported features.
 - [ ] **API-05**: Developer can subscribe and unsubscribe to typed editor events.
 - [ ] **API-06**: Developer can configure default tags, ID strategy options, validation rules, and editing styles.
 
 ### Drawing Behavior
 
-- [ ] **DRAW-01**: User can draw a room polygon through SDK-managed map click capture and temporary visuals.
-- [ ] **DRAW-02**: User can draw a corridor polygon through the same drawing workflow.
-- [ ] **DRAW-03**: User can draw a POI/point feature.
-- [ ] **DRAW-04**: During drawing, user sees temporary vertices, temporary lines, and polygon preview where applicable.
-- [ ] **DRAW-05**: User can finish drawing and receive committed editable geometry backed by nodes and ways.
-- [ ] **DRAW-06**: User can cancel drawing and the SDK removes temporary visuals without mutating committed data.
+- [x] **DRAW-01**: User can draw a room polygon through SDK-managed map click capture and temporary visuals.
+- [x] **DRAW-02**: User can draw a corridor polygon through the same drawing workflow.
+- [x] **DRAW-03**: User can draw a POI/point feature.
+- [x] **DRAW-04**: During drawing, user sees temporary vertices, temporary lines, and polygon preview where applicable.
+- [x] **DRAW-05**: User can finish drawing and receive committed editable geometry backed by nodes and ways.
+- [x] **DRAW-06**: User can cancel drawing and the SDK removes temporary visuals without mutating committed data.
 
 ### Editing Behavior
 
-- [ ] **EDIT-01**: User can select a feature and see selected/hover/editable visual state.
-- [ ] **EDIT-02**: User can drag a vertex handle and the linked node coordinates update.
-- [ ] **EDIT-03**: User can add a vertex to an existing way and the way node sequence updates.
-- [ ] **EDIT-04**: User can delete a vertex from an existing way while preserving minimum valid geometry rules.
-- [ ] **EDIT-05**: User can move a whole feature and all linked primitive coordinates update.
-- [ ] **EDIT-06**: User can delete a feature and the primitive store is updated without leaving broken references.
-- [ ] **EDIT-07**: User can update feature tags and see exports reflect the new tags.
+- [x] **EDIT-01**: User can select a feature and see selected/hover/editable visual state.
+- [x] **EDIT-02**: User can drag a vertex handle and the linked node coordinates update.
+- [x] **EDIT-03**: User can add a vertex to an existing way and the way node sequence updates.
+- [x] **EDIT-04**: User can delete a vertex from an existing way while preserving minimum valid geometry rules.
+- [x] **EDIT-05**: User can move a whole feature and all linked primitive coordinates update.
+- [x] **EDIT-06**: User can delete a feature and the primitive store is updated without leaving broken references.
+- [x] **EDIT-07**: User can update feature tags and see exports reflect the new tags.
 
 ### Indoor Semantics
 
-- [ ] **INDOOR-01**: New room features receive appropriate indoor and level tags.
-- [ ] **INDOOR-02**: New corridor features receive appropriate indoor and level tags.
-- [ ] **INDOOR-03**: New POI features can carry amenity, shop, office, name, level, and custom tags.
-- [ ] **INDOOR-04**: Developer can filter visible features by current level.
-- [ ] **INDOOR-05**: Developer can represent single-level and multi-level features using `level` and `repeat_on` style tags.
+- [x] **INDOOR-01**: New room features receive appropriate indoor and level tags.
+- [x] **INDOOR-02**: New corridor features receive appropriate indoor and level tags.
+- [x] **INDOOR-03**: New POI features can carry amenity, shop, office, name, level, and custom tags.
+- [x] **INDOOR-04**: Developer can filter visible features by current level.
+- [x] **INDOOR-05**: Developer can represent single-level and multi-level features using `level` and `repeat_on` style tags.
 - [ ] **INDOOR-06**: Developer can create or import floor outline and building outline features as supported indoor feature types.
 
 ### Shared Nodes and Snapping
@@ -102,7 +102,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Renderer Adapters
 
 - [ ] **ADAPT-01**: Core defines a renderer adapter contract for map events, coordinate conversion, layer lifecycle, drawing preview, committed features, vertex handles, selection, and snapping visuals.
-- [ ] **ADAPT-02**: Leaflet adapter implements drawing, committed features, vertex handles, selection, dragging, and style overrides using Leaflet APIs.
+- [x] **ADAPT-02**: Leaflet adapter implements drawing, committed features, vertex handles, selection, dragging, and style overrides using Leaflet APIs.
 - [ ] **ADAPT-03**: MapLibre adapter implements drawing, committed features, vertex handles, selection, dragging, and style overrides using MapLibre APIs.
 - [ ] **ADAPT-04**: Core behavior can be tested with a fake adapter without requiring a real map renderer.
 
@@ -174,27 +174,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IO-03 | Phase 1 | Pending |
 | ADAPT-01 | Phase 1 | Pending |
 | ADAPT-04 | Phase 1 | Pending |
-| API-03 | Phase 2 | Pending |
-| API-04 | Phase 2 | Pending |
-| DRAW-01 | Phase 2 | Pending |
-| DRAW-02 | Phase 2 | Pending |
-| DRAW-03 | Phase 2 | Pending |
-| DRAW-04 | Phase 2 | Pending |
-| DRAW-05 | Phase 2 | Pending |
-| DRAW-06 | Phase 2 | Pending |
-| EDIT-01 | Phase 2 | Pending |
-| EDIT-02 | Phase 2 | Pending |
-| EDIT-03 | Phase 2 | Pending |
-| EDIT-04 | Phase 2 | Pending |
-| EDIT-05 | Phase 2 | Pending |
-| EDIT-06 | Phase 2 | Pending |
-| EDIT-07 | Phase 2 | Pending |
-| INDOOR-01 | Phase 2 | Pending |
-| INDOOR-02 | Phase 2 | Pending |
-| INDOOR-03 | Phase 2 | Pending |
-| INDOOR-04 | Phase 2 | Pending |
-| INDOOR-05 | Phase 2 | Pending |
-| ADAPT-02 | Phase 2 | Pending |
+| API-03 | Phase 2 | Complete |
+| API-04 | Phase 2 | Complete |
+| DRAW-01 | Phase 2 | Complete |
+| DRAW-02 | Phase 2 | Complete |
+| DRAW-03 | Phase 2 | Complete |
+| DRAW-04 | Phase 2 | Complete |
+| DRAW-05 | Phase 2 | Complete |
+| DRAW-06 | Phase 2 | Complete |
+| EDIT-01 | Phase 2 | Complete |
+| EDIT-02 | Phase 2 | Complete |
+| EDIT-03 | Phase 2 | Complete |
+| EDIT-04 | Phase 2 | Complete |
+| EDIT-05 | Phase 2 | Complete |
+| EDIT-06 | Phase 2 | Complete |
+| EDIT-07 | Phase 2 | Complete |
+| INDOOR-01 | Phase 2 | Complete |
+| INDOOR-02 | Phase 2 | Complete |
+| INDOOR-03 | Phase 2 | Complete |
+| INDOOR-04 | Phase 2 | Complete |
+| INDOOR-05 | Phase 2 | Complete |
+| ADAPT-02 | Phase 2 | Complete |
 | SNAP-01 | Phase 3 | Pending |
 | SNAP-02 | Phase 3 | Pending |
 | SNAP-03 | Phase 3 | Pending |
