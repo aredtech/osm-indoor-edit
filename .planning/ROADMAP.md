@@ -75,7 +75,7 @@ Plans:
 - [x] 03-01: Spatial index, node snapping, edge snapping, and shared-wall creation
 - [x] 03-02: Shared-node mutation semantics and imported editable feature rebuilding
 - [x] 03-03: Relation primitive support and minimal relation editing API
-- [ ] 03-04: Built-in and pluggable validation rules
+- [x] 03-04: Built-in and pluggable validation rules
 
 ### Phase 4: MapLibre Parity and Host Integration
 **Goal**: A host app can use the MapLibre adapter with behavior equivalent to Leaflet, customize editing visuals, configure editor behavior, and drive all UI through events.

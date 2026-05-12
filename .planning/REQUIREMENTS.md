@@ -85,12 +85,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Validation
 
-- [ ] **VAL-01**: Developer can run validation and receive structured issues with severity, rule ID, element ID/type, and message.
-- [ ] **VAL-02**: Built-in validation detects missing level and missing indoor tags where required.
-- [ ] **VAL-03**: Built-in validation detects unclosed ways, ways with too few nodes, dangling node references, and broken way references.
-- [ ] **VAL-04**: Built-in validation detects invalid polygons and self-intersecting polygons.
-- [ ] **VAL-05**: Built-in validation detects duplicate node problems and relation members that reference missing elements.
-- [ ] **VAL-06**: Host applications can add, remove, or override validation rules.
+- [x] **VAL-01**: Developer can run validation and receive structured issues with severity, rule ID, element ID/type, and message.
+- [x] **VAL-02**: Built-in validation detects missing level and missing indoor tags where required.
+- [x] **VAL-03**: Built-in validation detects unclosed ways, ways with too few nodes, dangling node references, and broken way references.
+- [x] **VAL-04**: Built-in validation detects invalid polygons and self-intersecting polygons.
+- [x] **VAL-05**: Built-in validation detects duplicate node problems and relation members that reference missing elements.
+- [x] **VAL-06**: Host applications can add, remove, or override validation rules.
 
 ### Events and Styling
 
@@ -204,12 +204,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REL-02 | Phase 3 | Complete |
 | REL-03 | Phase 3 | Complete |
 | REL-04 | Phase 3 | Complete |
-| VAL-01 | Phase 3 | Pending |
-| VAL-02 | Phase 3 | Pending |
-| VAL-03 | Phase 3 | Pending |
-| VAL-04 | Phase 3 | Pending |
-| VAL-05 | Phase 3 | Pending |
-| VAL-06 | Phase 3 | Pending |
+| VAL-01 | Phase 3 | Complete |
+| VAL-02 | Phase 3 | Complete |
+| VAL-03 | Phase 3 | Complete |
+| VAL-04 | Phase 3 | Complete |
+| VAL-05 | Phase 3 | Complete |
+| VAL-06 | Phase 3 | Complete |
 | INDOOR-06 | Phase 3 | Complete |
 | IO-04 | Phase 3 | Complete |
 | IO-05 | Phase 3 | Complete |
