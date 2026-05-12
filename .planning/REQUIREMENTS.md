@@ -157,13 +157,79 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TBD | TBD | Pending |
+| PKG-01 | Phase 1 | Pending |
+| PKG-02 | Phase 1 | Pending |
+| PKG-03 | Phase 1 | Pending |
+| PKG-04 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Pending |
+| API-01 | Phase 1 | Pending |
+| API-02 | Phase 1 | Pending |
+| API-05 | Phase 1 | Pending |
+| IO-01 | Phase 1 | Pending |
+| IO-02 | Phase 1 | Pending |
+| IO-03 | Phase 1 | Pending |
+| ADAPT-01 | Phase 1 | Pending |
+| ADAPT-04 | Phase 1 | Pending |
+| API-03 | Phase 2 | Pending |
+| API-04 | Phase 2 | Pending |
+| DRAW-01 | Phase 2 | Pending |
+| DRAW-02 | Phase 2 | Pending |
+| DRAW-03 | Phase 2 | Pending |
+| DRAW-04 | Phase 2 | Pending |
+| DRAW-05 | Phase 2 | Pending |
+| DRAW-06 | Phase 2 | Pending |
+| EDIT-01 | Phase 2 | Pending |
+| EDIT-02 | Phase 2 | Pending |
+| EDIT-03 | Phase 2 | Pending |
+| EDIT-04 | Phase 2 | Pending |
+| EDIT-05 | Phase 2 | Pending |
+| EDIT-06 | Phase 2 | Pending |
+| EDIT-07 | Phase 2 | Pending |
+| INDOOR-01 | Phase 2 | Pending |
+| INDOOR-02 | Phase 2 | Pending |
+| INDOOR-03 | Phase 2 | Pending |
+| INDOOR-04 | Phase 2 | Pending |
+| INDOOR-05 | Phase 2 | Pending |
+| ADAPT-02 | Phase 2 | Pending |
+| SNAP-01 | Phase 3 | Pending |
+| SNAP-02 | Phase 3 | Pending |
+| SNAP-03 | Phase 3 | Pending |
+| SNAP-04 | Phase 3 | Pending |
+| SNAP-05 | Phase 3 | Pending |
+| REL-01 | Phase 3 | Pending |
+| REL-02 | Phase 3 | Pending |
+| REL-03 | Phase 3 | Pending |
+| REL-04 | Phase 3 | Pending |
+| VAL-01 | Phase 3 | Pending |
+| VAL-02 | Phase 3 | Pending |
+| VAL-03 | Phase 3 | Pending |
+| VAL-04 | Phase 3 | Pending |
+| VAL-05 | Phase 3 | Pending |
+| VAL-06 | Phase 3 | Pending |
+| INDOOR-06 | Phase 3 | Pending |
+| IO-04 | Phase 3 | Pending |
+| IO-05 | Phase 3 | Pending |
+| IO-06 | Phase 3 | Pending |
+| ADAPT-03 | Phase 4 | Pending |
+| API-06 | Phase 4 | Pending |
+| EVT-01 | Phase 4 | Pending |
+| EVT-02 | Phase 4 | Pending |
+| STYLE-01 | Phase 4 | Pending |
+| STYLE-02 | Phase 4 | Pending |
+| EX-01 | Phase 5 | Pending |
+| EX-02 | Phase 5 | Pending |
+| EX-03 | Phase 5 | Pending |
+| EX-04 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 66 total
-- Mapped to phases: 0
-- Unmapped: 66
+- v1 requirements: 67 total
+- Mapped to phases: 67
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-12*
-*Last updated: 2026-05-12 after initial definition*
+*Last updated: 2026-05-12 after roadmap creation*
