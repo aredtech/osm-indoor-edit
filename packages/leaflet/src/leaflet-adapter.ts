@@ -5,7 +5,8 @@ import type {
   RendererAdapterEventMap,
   ScreenPoint,
   TemporaryGeometry,
-  VertexHandle
+  VertexHandle,
+  ResolvedSnap
 } from "@osminedit-lib/core";
 import type { FeatureRecord } from "@osminedit-lib/core";
 import { isFeatureVisibleOnLevel } from "@osminedit-lib/core";
@@ -31,6 +32,7 @@ interface EditingGroups {
   committed: L.LayerGroup;
   selection: L.LayerGroup;
   handles: L.LayerGroup;
+  snap: L.LayerGroup;
 }
 
 export class LeafletRendererAdapter implements RendererAdapter {
@@ -70,13 +72,15 @@ export class LeafletRendererAdapter implements RendererAdapter {
       committed: L.layerGroup([], { pane: this.paneName }),
       draft: L.layerGroup([], { pane: this.paneName }),
       selection: L.layerGroup([], { pane: this.paneName }),
-      handles: L.layerGroup([], { pane: this.paneName })
+      handles: L.layerGroup([], { pane: this.paneName }),
+      snap: L.layerGroup([], { pane: this.paneName })
     };
 
     groups.root.addLayer(groups.committed);
     groups.root.addLayer(groups.draft);
     groups.root.addLayer(groups.selection);
     groups.root.addLayer(groups.handles);
+    groups.root.addLayer(groups.snap);
     groups.root.addTo(map);
     this.groups = groups;
 
@@ -279,6 +283,30 @@ export class LeafletRendererAdapter implements RendererAdapter {
     this.refreshCommittedVisibility();
   }
 
+  showSnapCandidate(candidate: ResolvedSnap): void {
+    const groups = this.requireGroups();
+    this.clearSnapCandidate();
+    groups.snap.addLayer(
+      L.circleMarker(toLatLng(candidate.coordinate), {
+        ...this.styles.snapIndicator,
+        pane: this.paneName
+      })
+    );
+
+    if (candidate.kind === "edge") {
+      groups.snap.addLayer(
+        L.polyline([toLatLng(candidate.from), toLatLng(candidate.coordinate), toLatLng(candidate.to)], {
+          ...this.styles.snapIndicator,
+          pane: this.paneName
+        })
+      );
+    }
+  }
+
+  clearSnapCandidate(): void {
+    this.groups?.snap.clearLayers();
+  }
+
   project(coordinate: Coordinate): ScreenPoint {
     const point = this.requireMap().latLngToContainerPoint(toLatLng(coordinate));
     return { x: point.x, y: point.y };
@@ -296,7 +324,8 @@ export class LeafletRendererAdapter implements RendererAdapter {
       draft: groups.draft.getLayers().length,
       committed: groups.committed.getLayers().length,
       selection: groups.selection.getLayers().length,
-      handles: groups.handles.getLayers().length
+      handles: groups.handles.getLayers().length,
+      snap: groups.snap.getLayers().length
     };
   }
 

@@ -24,11 +24,12 @@ describe("createLeafletAdapter", () => {
 
     expect(map.getPane("osminedit-editing")).toBeTruthy();
     expect(adapter.getLayerCounts()).toEqual({
-      root: 4,
+      root: 5,
       committed: 0,
       draft: 0,
       selection: 0,
-      handles: 0
+      handles: 0,
+      snap: 0
     });
   });
 
@@ -65,6 +66,7 @@ describe("createLeafletAdapter", () => {
     expect(styles.draftLine.weight).toBe(2);
     expect(styles.vertexHandle.radius).toBe(9);
     expect(styles.vertexHandle.color).toBe("#F97316");
+    expect(styles.snapIndicator.color).toBe("#22C55E");
   });
 
   it("emits pointerDown coordinates with lat and lon", () => {

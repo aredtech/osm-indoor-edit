@@ -8,6 +8,7 @@ export interface LeafletEditingStyles {
   selected: PathOptions;
   vertexHandle: CircleMarkerOptions;
   midpointHandle: CircleMarkerOptions;
+  snapIndicator: CircleMarkerOptions & PathOptions;
 }
 
 export const DEFAULT_LEAFLET_EDITING_STYLES: LeafletEditingStyles = {
@@ -58,6 +59,14 @@ export const DEFAULT_LEAFLET_EDITING_STYLES: LeafletEditingStyles = {
     opacity: 0.7,
     fillColor: "#FFFFFF",
     fillOpacity: 0.85
+  },
+  snapIndicator: {
+    radius: 8,
+    color: "#22C55E",
+    weight: 2,
+    opacity: 0.9,
+    fillColor: "#22C55E",
+    fillOpacity: 0.25
   }
 };
 
@@ -74,6 +83,10 @@ export function mergeLeafletEditingStyles(
     midpointHandle: {
       ...DEFAULT_LEAFLET_EDITING_STYLES.midpointHandle,
       ...overrides.midpointHandle
+    },
+    snapIndicator: {
+      ...DEFAULT_LEAFLET_EDITING_STYLES.snapIndicator,
+      ...overrides.snapIndicator
     }
   };
 }
