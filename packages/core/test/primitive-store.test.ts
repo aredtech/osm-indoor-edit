@@ -192,6 +192,31 @@ describe("PrimitiveStore", () => {
     ]);
   });
 
+  it("appendRelationMember and removeRelationMember preserve roles and validate missing member references", () => {
+    const store = new PrimitiveStore();
+    store.importElement(nodeA);
+    store.importElement(nodeB);
+    store.importElement(nodeC);
+    store.importElement(closedWay);
+    store.importElement({
+      type: "relation",
+      id: 20,
+      members: [],
+      tags: { type: "multipolygon" },
+      timestamp: "2026-05-11T16:40:42Z"
+    });
+
+    const appended = store.appendRelationMember(20, { type: "way", ref: 10, role: "outer" });
+    expect(appended.members).toEqual([{ type: "way", ref: 10, role: "outer" }]);
+
+    expect(() =>
+      store.appendRelationMember(20, { type: "way", ref: 999, role: "inner" })
+    ).toThrow(DataIntegrityError);
+
+    const removed = store.removeRelationMember(20, { type: "way", ref: 10, role: "outer" });
+    expect(removed.members).toEqual([]);
+  });
+
   it("updates element tags", () => {
     const store = new PrimitiveStore();
     store.importElement(nodeA);

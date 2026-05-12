@@ -1,6 +1,7 @@
 import { toIsoTimestamp, type Clock, systemClock } from "./clock";
 import { DataIntegrityError } from "./errors";
 import { ElementIdAllocator } from "./ids";
+import type { RelationMemberMatcher } from "./relations";
 import type {
   OsmElement,
   OsmInEditExport,
@@ -192,6 +193,45 @@ export class PrimitiveStore {
     }
     const updated = { ...relation, tags: { ...tags } };
     this.relations.set(id, updated);
+    return cloneElement(updated);
+  }
+
+  appendRelationMember(relationId: PrimitiveId, member: OsmRelationMember): OsmRelation {
+    const relation = this.relations.get(relationId);
+    if (!relation) {
+      throw new DataIntegrityError(`Relation ${relationId} does not exist`);
+    }
+
+    const updated: OsmRelation = {
+      ...relation,
+      members: [...relation.members, { ...member }]
+    };
+    this.assertRelationReferences(updated);
+    this.relations.set(relationId, updated);
+    return cloneElement(updated);
+  }
+
+  removeRelationMember(relationId: PrimitiveId, matcher: RelationMemberMatcher): OsmRelation {
+    const relation = this.relations.get(relationId);
+    if (!relation) {
+      throw new DataIntegrityError(`Relation ${relationId} does not exist`);
+    }
+
+    const index = typeof matcher === "number" ? matcher : relation.members.findIndex((member) =>
+      member.type === matcher.type &&
+      member.ref === matcher.ref &&
+      (matcher.role === undefined || member.role === matcher.role)
+    );
+    if (index < 0 || index >= relation.members.length) {
+      throw new DataIntegrityError(`Relation ${relationId} member does not exist`);
+    }
+
+    const updated: OsmRelation = {
+      ...relation,
+      members: relation.members.filter((_, memberIndex) => memberIndex !== index)
+    };
+    this.assertRelationReferences(updated);
+    this.relations.set(relationId, updated);
     return cloneElement(updated);
   }
 
