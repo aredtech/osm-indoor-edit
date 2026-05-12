@@ -23,9 +23,12 @@ describe("TypedEventEmitter", () => {
       count += 1;
     });
 
-    events.emit("validationChanged", { valid: true, errors: [] });
+    events.emit("validationChanged", { valid: true, issues: [] });
     unsubscribe();
-    events.emit("validationChanged", { valid: false, errors: ["invalid"] });
+    events.emit("validationChanged", {
+      valid: false,
+      issues: [{ ruleId: "invalid", severity: "error", message: "invalid" }]
+    });
 
     expect(count).toBe(1);
   });

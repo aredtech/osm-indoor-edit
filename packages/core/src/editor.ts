@@ -14,7 +14,7 @@ import {
   type DrawKind,
   type StartDrawOptions
 } from "./drawing";
-import { DrawingIntegrityError, UnsupportedOperationError } from "./errors";
+import { DrawingIntegrityError } from "./errors";
 import {
   type EditorEventMap,
   type EventHandler,
@@ -29,6 +29,13 @@ import type { CreateEditorRelationInput, RelationMemberInput, RelationMemberMatc
 import { DEFAULT_SNAP_TOLERANCE_PX, resolveSnapCandidate, type SnapSettings } from "./snapping";
 import { collectSnapCandidates } from "./topology";
 import type { OsmElement, OsmInEditExport, OsmRelation, Tags } from "./types";
+import {
+  builtInValidationRules,
+  createValidationContext,
+  runValidationRules,
+  type ValidationResult,
+  type ValidationRule
+} from "./validation";
 
 export interface EditorOptions {
   adapter?: RendererAdapter;
@@ -37,6 +44,7 @@ export interface EditorOptions {
   ids?: ElementIdAllocator;
   defaultLevel?: string;
   snapping?: boolean | Partial<SnapSettings>;
+  validationRules?: ValidationRule[];
 }
 
 export interface EditorStateSnapshot {
@@ -71,7 +79,8 @@ export interface IndoorEditor {
   getElements(): readonly OsmElement[];
   loadOsmInEdit(data: OsmInEditExport): void;
   exportOsmInEdit(): OsmInEditExport;
-  validate(): never;
+  validate(): ValidationResult;
+  registerValidationRule(rule: ValidationRule): () => void;
   on<TName extends EditorEventName>(
     eventName: TName,
     handler: EventHandler<EditorEventMap[TName]>
@@ -96,6 +105,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
   private readonly ids: ElementIdAllocator;
   private level: string | undefined;
   private snapping: SnapSettings;
+  private readonly validationRules: ValidationRule[];
   private draft: DraftDrawingState | undefined;
   private selectedFeatureId: string | null = null;
   private destroyed = false;
@@ -107,6 +117,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
     this.adapter = options.adapter;
     this.level = options.defaultLevel;
     this.snapping = normalizeSnapSettings(options.snapping);
+    this.validationRules = [...(options.validationRules ?? [])];
 
     if (this.adapter && "target" in options) {
       this.adapter.attach(options.target);
@@ -436,8 +447,26 @@ class HeadlessIndoorEditor implements IndoorEditor {
     return exported;
   }
 
-  validate(): never {
-    throw new UnsupportedOperationError("validate");
+  validate(): ValidationResult {
+    const result = runValidationRules(
+      createValidationContext({
+        elements: this.primitiveStore.getElements(),
+        features: this.featureStore.list()
+      }),
+      [...builtInValidationRules, ...this.validationRules]
+    );
+    this.events.emit("validationChanged", result);
+    return result;
+  }
+
+  registerValidationRule(rule: ValidationRule): () => void {
+    this.validationRules.push(rule);
+    return () => {
+      const index = this.validationRules.indexOf(rule);
+      if (index >= 0) {
+        this.validationRules.splice(index, 1);
+      }
+    };
   }
 
   on<TName extends EditorEventName>(

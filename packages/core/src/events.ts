@@ -1,5 +1,6 @@
 import type { OsmIndoorError } from "./errors";
 import type { OsmElement, Tags } from "./types";
+import type { ValidationIssue } from "./validation";
 
 export interface EditorEventMap {
   ready: { timestamp: string };
@@ -17,7 +18,7 @@ export interface EditorEventMap {
   wayUpdated: { wayId: number };
   relationUpdated: { relationId: number };
   tagsUpdated: { featureId: string; tags: Tags };
-  validationChanged: { valid: boolean; errors: string[] };
+  validationChanged: { valid: boolean; issues: ValidationIssue[] };
   exportReady: { elements: OsmElement[] };
   error: { error: OsmIndoorError | Error };
 }

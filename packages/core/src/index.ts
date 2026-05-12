@@ -15,5 +15,6 @@ export * from "./relations";
 export * from "./snapping";
 export * from "./topology";
 export * from "./types";
+export * from "./validation";
 
 export const version = "0.0.0";

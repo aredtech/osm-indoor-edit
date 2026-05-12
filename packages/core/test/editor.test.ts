@@ -3,7 +3,6 @@ import {
   createEditor,
   ElementIdAllocator,
   fixedClock,
-  UnsupportedOperationError,
   type OsmInEditExport,
   type RendererAdapter
 } from "../src";
@@ -150,9 +149,9 @@ describe("createEditor", () => {
     expect(() => (elements as unknown[]).push({})).toThrow();
   });
 
-  it("throws UnsupportedOperationError for later-phase methods", () => {
+  it("validates through the Phase 3 advisory validation API", () => {
     const editor = createEditor();
 
-    expect(() => editor.validate()).toThrow(UnsupportedOperationError);
+    expect(editor.validate()).toEqual({ valid: true, issues: [] });
   });
 });
