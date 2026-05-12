@@ -47,9 +47,15 @@ importers:
       '@osminedit-lib/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@osminedit-lib/example-vanilla':
+        specifier: workspace:*
+        version: link:../vanilla
       '@osminedit-lib/maplibre':
         specifier: workspace:*
         version: link:../../packages/maplibre
+      maplibre-gl:
+        specifier: ^5.0.0
+        version: 5.24.0
 
   examples/vanilla:
     dependencies:

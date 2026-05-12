@@ -3,8 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5174",
+    "build": "vite build"
+  },
   "dependencies": {
     "@osminedit-lib/core": "workspace:*",
-    "@osminedit-lib/maplibre": "workspace:*"
+    "@osminedit-lib/example-vanilla": "workspace:*",
+    "@osminedit-lib/maplibre": "workspace:*",
+    "maplibre-gl": "^5.0.0"
   }
 }

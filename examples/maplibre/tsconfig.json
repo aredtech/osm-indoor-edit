@@ -7,7 +7,8 @@
   },
   "references": [
     { "path": "../../packages/core" },
-    { "path": "../../packages/maplibre" }
+    { "path": "../../packages/maplibre" },
+    { "path": "../vanilla" }
   ],
   "include": ["src/**/*.ts"]
 }
