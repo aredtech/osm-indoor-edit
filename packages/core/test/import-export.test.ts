@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createEditor,
+  DataIntegrityError,
   normalizeOsmInEditExport,
   sortElementsForImport,
   type OsmInEditExport
@@ -8,11 +9,13 @@ import {
 import customFixture from "./fixtures/imported-custom-way.json";
 import relationFixture from "./fixtures/sample-relation.json";
 import roomFixture from "./fixtures/sample-room.json";
+import sharedRoomsFixture from "./fixtures/shared-rooms.json";
 import exportSnapshot from "./snapshots/osminedit-export.snap.json";
 
 const sampleRoom = roomFixture as unknown as OsmInEditExport;
 const sampleRelation = relationFixture as unknown as OsmInEditExport;
 const importedCustomWay = customFixture as unknown as OsmInEditExport;
+const sharedRooms = sharedRoomsFixture as unknown as OsmInEditExport;
 
 function roundTrip(fixture: OsmInEditExport): OsmInEditExport {
   const editor = createEditor();
@@ -60,6 +63,46 @@ describe("import/export fixtures", () => {
         primitiveRefs: expect.objectContaining({ wayId: 40 })
       })
     );
+  });
+
+  it("loads shared-rooms and preserves shared references and unknown tags", () => {
+    const editor = createEditor();
+
+    editor.loadOsmInEdit(sharedRooms);
+    editor.moveVertex("feature-1", 1, { lat: -1, lon: 11 });
+    const exported = editor.exportOsmInEdit();
+    const roomA = exported.elements.find((element) => element.type === "way" && element.id === 10);
+    const roomB = exported.elements.find((element) => element.type === "way" && element.id === 11);
+    const movedNode = exported.elements.find((element) => element.type === "node" && element.id === 2);
+
+    expect(editor.getState().features.map((feature) => feature.primitiveRefs.nodeIds)).toEqual([
+      [1, 2, 3, 4, 1],
+      [2, 5, 6, 3, 2]
+    ]);
+    expect(roomA).toMatchObject({
+      type: "way",
+      nodes: [1, 2, 3, 4, 1],
+      tags: { "source:floorplan": "survey" }
+    });
+    expect(roomB).toMatchObject({ type: "way", nodes: [2, 5, 6, 3, 2] });
+    expect(movedNode).toMatchObject({ type: "node", id: 2, lat: -1, lon: 11 });
+  });
+
+  it("throws DataIntegrityError for structurally invalid imports", () => {
+    expect(() =>
+      roundTrip({
+        status: true,
+        elements: [
+          {
+            type: "way",
+            id: 99,
+            nodes: [1, 2, 1],
+            tags: { indoor: "room", level: "0" },
+            timestamp: "2026-05-12T09:00:00Z"
+          }
+        ]
+      })
+    ).toThrow(DataIntegrityError);
   });
 
   it("normalizes imports and matches the deterministic fixture snapshot", () => {
