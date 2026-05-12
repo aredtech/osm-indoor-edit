@@ -167,6 +167,31 @@ describe("PrimitiveStore", () => {
     expect(store.getWay(10)?.nodes).toEqual([1, 2, 100, 3, 1]);
   });
 
+  it("getRelationsReferencing and isNodeReferenced detect primitive references", () => {
+    const store = new PrimitiveStore();
+    store.importElement(nodeA);
+    store.importElement(nodeB);
+    store.importElement(nodeC);
+    store.importElement(closedWay);
+    store.importElement({
+      type: "relation",
+      id: 20,
+      members: [{ type: "way", ref: 10, role: "outer" }],
+      tags: { type: "multipolygon" },
+      timestamp: "2026-05-11T16:40:42Z"
+    });
+
+    const relations = store.getRelationsReferencing("way", 10);
+    relations[0]?.members.push({ type: "node", ref: 1, role: "label" });
+
+    expect(store.isNodeReferenced(1)).toBe(true);
+    expect(store.isNodeReferenced(999)).toBe(false);
+    expect(relations).toHaveLength(1);
+    expect(store.getRelationsReferencing("way", 10)[0]?.members).toEqual([
+      { type: "way", ref: 10, role: "outer" }
+    ]);
+  });
+
   it("updates element tags", () => {
     const store = new PrimitiveStore();
     store.importElement(nodeA);

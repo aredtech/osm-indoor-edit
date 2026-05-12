@@ -78,6 +78,25 @@ export class FeatureStore {
     return [...this.features.values()].map(cloneFeature);
   }
 
+  findByNodeId(nodeId: PrimitiveId): FeatureRecord[] {
+    return [...this.features.values()]
+      .filter((feature) => feature.primitiveRefs.nodeIds.includes(nodeId))
+      .map(cloneFeature);
+  }
+
+  findByWayId(wayId: PrimitiveId): FeatureRecord | undefined {
+    const feature = [...this.features.values()].find(
+      (candidate) => candidate.primitiveRefs.wayId === wayId
+    );
+    return feature ? cloneFeature(feature) : undefined;
+  }
+
+  findByRelationId(relationId: PrimitiveId): FeatureRecord[] {
+    return [...this.features.values()]
+      .filter((feature) => feature.primitiveRefs.relationIds?.includes(relationId))
+      .map(cloneFeature);
+  }
+
   update(id: string, input: UpdateFeatureInput): FeatureRecord {
     const existing = this.features.get(id);
     if (!existing) {

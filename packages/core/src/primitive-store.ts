@@ -236,6 +236,21 @@ export class PrimitiveStore {
     return [...ways, ...relations.map(cloneElement)];
   }
 
+  getRelationsReferencing(type: OsmRelationMember["type"], ref: PrimitiveId): OsmRelation[] {
+    return [...this.relations.values()]
+      .filter((relation) => relation.members.some((member) => member.type === type && member.ref === ref))
+      .map(cloneElement);
+  }
+
+  isNodeReferenced(nodeId: PrimitiveId): boolean {
+    return (
+      [...this.ways.values()].some((way) => way.nodes.includes(nodeId)) ||
+      [...this.relations.values()].some((relation) =>
+        relation.members.some((member) => member.type === "node" && member.ref === nodeId)
+      )
+    );
+  }
+
   getNode(id: PrimitiveId): OsmNode | undefined {
     const node = this.nodes.get(id);
     return node ? cloneElement(node) : undefined;

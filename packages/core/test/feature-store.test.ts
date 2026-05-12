@@ -65,4 +65,26 @@ describe("FeatureStore", () => {
 
     expect(store.get(feature.id)?.primitiveRefs.nodeIds).toEqual([1, 2]);
   });
+
+  it("findByNodeId, findByWayId, and findByRelationId return cloned matches", () => {
+    const store = new FeatureStore();
+    const first = store.add({
+      kind: "room",
+      geometryType: "polygon",
+      primitiveRefs: { nodeIds: [1, 2, 3, 1], wayId: 10, relationIds: [] }
+    });
+    store.add({
+      kind: "room",
+      geometryType: "polygon",
+      primitiveRefs: { nodeIds: [3, 4, 5, 3], wayId: 11, relationIds: [20] }
+    });
+
+    const byNode = store.findByNodeId(3);
+    byNode[0]?.primitiveRefs.nodeIds.push(99);
+
+    expect(byNode.map((feature) => feature.id)).toEqual([first.id, "feature-2"]);
+    expect(store.findByNodeId(3)[0]?.primitiveRefs.nodeIds).toEqual([1, 2, 3, 1]);
+    expect(store.findByWayId(10)?.id).toBe(first.id);
+    expect(store.findByRelationId(20).map((feature) => feature.id)).toEqual(["feature-2"]);
+  });
 });
