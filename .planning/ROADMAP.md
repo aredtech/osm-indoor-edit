@@ -119,8 +119,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Headless Core Foundation | 0/4 | Not started | - |
-| 2. Leaflet Editing MVP | 0/4 | Not started | - |
+| 1. Headless Core Foundation | 4/4 | Complete | 2026-05-12 |
+| 2. Leaflet Editing MVP | 0/4 | Planned | - |
 | 3. Topology, Relations, and Validation | 0/4 | Not started | - |
 | 4. MapLibre Parity and Host Integration | 0/3 | Not started | - |
 | 5. Examples, Docs, and Release Readiness | 0/2 | Not started | - |
