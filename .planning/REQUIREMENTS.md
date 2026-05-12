@@ -108,10 +108,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Examples and Documentation
 
-- [ ] **EX-01**: Vanilla Leaflet example demonstrates host-owned draw buttons, level control, tag update, validation display, import, and export.
-- [ ] **EX-02**: Vanilla MapLibre example demonstrates the same host-owned workflow.
-- [ ] **EX-03**: Documentation explains SDK responsibilities versus host application responsibilities.
-- [ ] **EX-04**: Documentation includes public API examples for create, draw, edit tags, validate, load, export, and event subscription.
+- [x] **EX-01**: Vanilla Leaflet example demonstrates host-owned draw buttons, level control, tag update, validation display, import, and export.
+- [x] **EX-02**: Vanilla MapLibre example demonstrates the same host-owned workflow.
+- [x] **EX-03**: Documentation explains SDK responsibilities versus host application responsibilities.
+- [x] **EX-04**: Documentation includes public API examples for create, draw, edit tags, validate, load, export, and event subscription.
 
 ## v2 Requirements
 
@@ -220,10 +220,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EVT-02 | Phase 4 | Complete |
 | STYLE-01 | Phase 4 | Complete |
 | STYLE-02 | Phase 4 | Complete |
-| EX-01 | Phase 5 | Pending |
-| EX-02 | Phase 5 | Pending |
-| EX-03 | Phase 5 | Pending |
-| EX-04 | Phase 5 | Pending |
+| EX-01 | Phase 5 | Complete |
+| EX-02 | Phase 5 | Complete |
+| EX-03 | Phase 5 | Complete |
+| EX-04 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 67 total
