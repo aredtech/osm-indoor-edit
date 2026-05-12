@@ -9,5 +9,10 @@
       "@osminedit-lib/maplibre": ["packages/maplibre/src/index.ts"]
     }
   },
-  "include": ["packages/*/src/**/*.ts", "packages/*/test/**/*.ts", "examples/*/src/**/*.ts"]
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "examples/*/src/**/*.ts",
+    "tests/**/*.ts"
+  ]
 }
