@@ -133,7 +133,13 @@ class HeadlessIndoorEditor implements IndoorEditor {
 
   setLevel(level: string | undefined): void {
     const previousLevel = this.level;
+    if (this.draft) {
+      this.clearDraft();
+      this.events.emit("toolChanged", { tool: null });
+      this.events.emit("drawingCancelled", { reason: "levelChanged" });
+    }
     this.level = level;
+    this.adapter?.setLevel?.(level);
     this.events.emit("levelChanged", { level, previousLevel });
   }
 

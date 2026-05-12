@@ -98,6 +98,10 @@ export class FakeRendererAdapter implements RendererAdapter {
     this.record("setSelectedFeature", featureId);
   }
 
+  setLevel(level: string | undefined): void {
+    this.record("setLevel", level);
+  }
+
   project(coordinate: Coordinate): ScreenPoint {
     this.record("project", coordinate);
     return { x: coordinate.lon, y: coordinate.lat };

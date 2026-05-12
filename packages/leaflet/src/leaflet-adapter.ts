@@ -8,6 +8,7 @@ import type {
   VertexHandle
 } from "@osminedit-lib/core";
 import type { FeatureRecord } from "@osminedit-lib/core";
+import { isFeatureVisibleOnLevel } from "@osminedit-lib/core";
 import {
   type LeafletEditingStyles,
   mergeLeafletEditingStyles
@@ -46,6 +47,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
     string,
     { vertices: L.CircleMarker[]; midpoints: L.CircleMarker[] }
   >();
+  private currentLevel: string | undefined;
   private selectedFeatureId: string | null = null;
 
   constructor(options: LeafletAdapterOptions = {}) {
@@ -96,6 +98,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
     this.committedLayers.clear();
     this.committedFeatures.clear();
     this.handleLayers.clear();
+    this.currentLevel = undefined;
     this.groups?.root.removeFrom(this.map);
     this.groups = undefined;
     this.map = undefined;
@@ -154,7 +157,9 @@ export class LeafletRendererAdapter implements RendererAdapter {
     this.committedFeatures.set(feature.id, feature);
     const layer = this.createCommittedLayer(feature, false);
     this.committedLayers.set(feature.id, layer);
-    this.groups?.committed.addLayer(layer);
+    if (isFeatureVisibleOnLevel(feature, this.currentLevel)) {
+      this.groups?.committed.addLayer(layer);
+    }
   }
 
   updateFeature(feature: FeatureRecord): void {
@@ -247,6 +252,11 @@ export class LeafletRendererAdapter implements RendererAdapter {
     if (feature) {
       this.groups?.selection.addLayer(this.createCommittedLayer(feature, true));
     }
+  }
+
+  setLevel(level: string | undefined): void {
+    this.currentLevel = level;
+    this.refreshCommittedVisibility();
   }
 
   project(coordinate: Coordinate): ScreenPoint {
@@ -407,6 +417,28 @@ export class LeafletRendererAdapter implements RendererAdapter {
     bindFeatureEvents(polyline);
     group.addLayer(polyline);
     return group;
+  }
+
+  private refreshCommittedVisibility(): void {
+    const committed = this.groups?.committed;
+    if (!committed) {
+      return;
+    }
+
+    for (const [featureId, layer] of this.committedLayers) {
+      const feature = this.committedFeatures.get(featureId);
+      if (!feature) {
+        continue;
+      }
+
+      if (isFeatureVisibleOnLevel(feature, this.currentLevel)) {
+        if (!committed.hasLayer(layer)) {
+          committed.addLayer(layer);
+        }
+      } else if (committed.hasLayer(layer)) {
+        committed.removeLayer(layer);
+      }
+    }
   }
 
   private emit<TName extends keyof RendererAdapterEventMap>(

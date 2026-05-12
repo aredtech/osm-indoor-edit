@@ -9,6 +9,7 @@ export * from "./fake-adapter";
 export * from "./feature-store";
 export * from "./import-export";
 export * from "./ids";
+export * from "./levels";
 export * from "./primitive-store";
 export * from "./types";
 

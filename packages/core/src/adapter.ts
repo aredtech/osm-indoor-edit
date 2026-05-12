@@ -64,6 +64,7 @@ export interface RendererAdapter {
   showVertexHandles(featureId: string, handles: VertexHandle[]): void;
   clearVertexHandles(featureId?: string): void;
   setSelectedFeature(featureId: string | null): void;
+  setLevel?(level: string | undefined): void;
   project(coordinate: Coordinate): ScreenPoint;
   unproject(point: ScreenPoint): Coordinate;
 }
