@@ -24,7 +24,25 @@ export interface RendererAdapterEventMap {
   pointerDown: { coordinate: Coordinate; originalEvent?: unknown };
   pointerMove: { coordinate: Coordinate; originalEvent?: unknown };
   pointerUp: { coordinate: Coordinate; originalEvent?: unknown };
-  vertexDrag: { handleId: string; coordinate: Coordinate; originalEvent?: unknown };
+  featureClick: { featureId: string; coordinate: Coordinate; originalEvent?: unknown };
+  featureDrag: {
+    featureId: string;
+    from: Coordinate;
+    to: Coordinate;
+    originalEvent?: unknown;
+  };
+  vertexDrag: {
+    featureId: string;
+    vertexIndex: number;
+    coordinate: Coordinate;
+    originalEvent?: unknown;
+  };
+  midpointClick: {
+    featureId: string;
+    edgeIndex: number;
+    coordinate: Coordinate;
+    originalEvent?: unknown;
+  };
 }
 
 export interface RendererAdapter {
