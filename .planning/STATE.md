@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Phase 5 complete
-last_updated: "2026-05-12T17:17:30.003Z"
-last_activity: 2026-05-12 -- Renamed npm packages to @aredtech scope
+last_updated: "2026-05-12T17:48:21.633Z"
+last_activity: 2026-05-12 -- Prepared package READMEs and 0.1.0 publish bump
 progress:
   total_phases: 5
   completed_phases: 5
@@ -87,6 +87,7 @@ None yet.
 | Date | Task | Status |
 |------|------|--------|
 | 2026-05-12 | Rename npm packages to `@aredtech/osm-indoor-edit` architecture | Complete |
+| 2026-05-12 | Add package READMEs and bump public packages to `0.1.0` | Complete |
 
 ### Blockers/Concerns
 

@@ -1,8 +1,17 @@
 {
   "name": "@aredtech/osm-indoor-edit",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/aredtech/osm-indoor-edit.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/aredtech/osm-indoor-edit#readme",
+  "bugs": {
+    "url": "https://github.com/aredtech/osm-indoor-edit/issues"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
