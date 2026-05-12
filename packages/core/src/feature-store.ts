@@ -1,4 +1,5 @@
 import { DataIntegrityError } from "./errors";
+import type { Coordinate } from "./adapter";
 import { isClosedWay } from "./primitive-store";
 import type { OsmElement, OsmNode, OsmRelation, OsmWay, PrimitiveId, Tags } from "./types";
 
@@ -33,6 +34,7 @@ export interface FeatureRecord {
   level?: string;
   tags: Tags;
   primitiveRefs: PrimitiveRefs;
+  coordinates?: Coordinate[];
 }
 
 export interface AddFeatureInput {
@@ -41,6 +43,7 @@ export interface AddFeatureInput {
   level?: string;
   tags?: Tags;
   primitiveRefs: PrimitiveRefs;
+  coordinates?: Coordinate[];
 }
 
 export type UpdateFeatureInput = Partial<Omit<AddFeatureInput, "primitiveRefs">> & {
@@ -58,7 +61,8 @@ export class FeatureStore {
       geometryType: input.geometryType,
       ...(input.level === undefined ? {} : { level: input.level }),
       tags: { ...(input.tags ?? {}) },
-      primitiveRefs: clonePrimitiveRefs(input.primitiveRefs)
+      primitiveRefs: clonePrimitiveRefs(input.primitiveRefs),
+      ...(input.coordinates === undefined ? {} : { coordinates: cloneCoordinates(input.coordinates) })
     };
 
     this.features.set(feature.id, feature);
@@ -90,6 +94,9 @@ export class FeatureStore {
       ...("tags" in input && input.tags !== undefined ? { tags: { ...input.tags } } : {}),
       ...("primitiveRefs" in input && input.primitiveRefs !== undefined
         ? { primitiveRefs: clonePrimitiveRefs(input.primitiveRefs) }
+        : {}),
+      ...("coordinates" in input && input.coordinates !== undefined
+        ? { coordinates: cloneCoordinates(input.coordinates) }
         : {})
     };
 
@@ -194,7 +201,8 @@ function cloneFeature(feature: FeatureRecord): FeatureRecord {
   return {
     ...feature,
     tags: { ...feature.tags },
-    primitiveRefs: clonePrimitiveRefs(feature.primitiveRefs)
+    primitiveRefs: clonePrimitiveRefs(feature.primitiveRefs),
+    ...(feature.coordinates === undefined ? {} : { coordinates: cloneCoordinates(feature.coordinates) })
   };
 }
 
@@ -204,4 +212,8 @@ function clonePrimitiveRefs(refs: PrimitiveRefs): PrimitiveRefs {
     ...(refs.wayId === undefined ? {} : { wayId: refs.wayId }),
     ...(refs.relationIds === undefined ? {} : { relationIds: [...refs.relationIds] })
   };
+}
+
+function cloneCoordinates(coordinates: Coordinate[]): Coordinate[] {
+  return coordinates.map((coordinate) => ({ ...coordinate }));
 }

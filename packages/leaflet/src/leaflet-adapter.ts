@@ -41,6 +41,11 @@ export class LeafletRendererAdapter implements RendererAdapter {
   private readonly listeners: LeafletListener[] = [];
   private readonly temporaryLayers = new Map<string, L.Layer>();
   private readonly committedLayers = new Map<string, L.Layer>();
+  private readonly committedFeatures = new Map<string, FeatureRecord>();
+  private readonly handleLayers = new Map<
+    string,
+    { vertices: L.CircleMarker[]; midpoints: L.CircleMarker[] }
+  >();
   private selectedFeatureId: string | null = null;
 
   constructor(options: LeafletAdapterOptions = {}) {
@@ -89,6 +94,8 @@ export class LeafletRendererAdapter implements RendererAdapter {
     this.listeners.length = 0;
     this.temporaryLayers.clear();
     this.committedLayers.clear();
+    this.committedFeatures.clear();
+    this.handleLayers.clear();
     this.groups?.root.removeFrom(this.map);
     this.groups = undefined;
     this.map = undefined;
@@ -144,15 +151,14 @@ export class LeafletRendererAdapter implements RendererAdapter {
   commitFeature(feature: FeatureRecord): void {
     this.requireGroups();
     this.removeFeature(feature.id);
-    const layer = L.layerGroup([], { pane: this.paneName });
+    this.committedFeatures.set(feature.id, feature);
+    const layer = this.createCommittedLayer(feature, false);
     this.committedLayers.set(feature.id, layer);
     this.groups?.committed.addLayer(layer);
   }
 
   updateFeature(feature: FeatureRecord): void {
-    if (!this.committedLayers.has(feature.id)) {
-      this.commitFeature(feature);
-    }
+    this.commitFeature(feature);
   }
 
   removeFeature(featureId: string): void {
@@ -162,6 +168,8 @@ export class LeafletRendererAdapter implements RendererAdapter {
       this.groups?.selection.removeLayer(layer);
       this.committedLayers.delete(featureId);
     }
+    this.committedFeatures.delete(featureId);
+    this.handleLayers.delete(featureId);
 
     if (this.selectedFeatureId === featureId) {
       this.setSelectedFeature(null);
@@ -171,6 +179,8 @@ export class LeafletRendererAdapter implements RendererAdapter {
   showVertexHandles(featureId: string, handles: VertexHandle[]): void {
     this.requireGroups();
     this.clearVertexHandles(featureId);
+    const vertices: L.CircleMarker[] = [];
+    const midpoints: L.CircleMarker[] = [];
     for (const [index, handle] of handles.entries()) {
       const marker = L.circleMarker(toLatLng(handle.coordinate), {
         ...this.styles.vertexHandle,
@@ -186,16 +196,57 @@ export class LeafletRendererAdapter implements RendererAdapter {
         });
       });
       this.groups?.handles.addLayer(marker);
+      vertices.push(marker);
     }
+
+    for (let index = 0; index < handles.length - 1; index += 1) {
+      const midpoint = midpointCoordinate(handles[index].coordinate, handles[index + 1].coordinate);
+      const marker = L.circleMarker(toLatLng(midpoint), {
+        ...this.styles.midpointHandle,
+        pane: this.paneName
+      });
+      marker.on("click", (event) => {
+        this.emit("midpointClick", {
+          featureId,
+          edgeIndex: index,
+          coordinate: fromLatLng((event as L.LeafletMouseEvent).latlng ?? marker.getLatLng()),
+          originalEvent: event
+        });
+      });
+      this.groups?.handles.addLayer(marker);
+      midpoints.push(marker);
+    }
+    this.handleLayers.set(featureId, { vertices, midpoints });
   }
 
-  clearVertexHandles(_featureId?: string): void {
-    this.groups?.handles.clearLayers();
+  clearVertexHandles(featureId?: string): void {
+    if (!featureId) {
+      this.groups?.handles.clearLayers();
+      this.handleLayers.clear();
+      return;
+    }
+
+    const handles = this.handleLayers.get(featureId);
+    if (!handles) {
+      return;
+    }
+    for (const layer of [...handles.vertices, ...handles.midpoints]) {
+      this.groups?.handles.removeLayer(layer);
+    }
+    this.handleLayers.delete(featureId);
   }
 
   setSelectedFeature(featureId: string | null): void {
     this.selectedFeatureId = featureId;
     this.groups?.selection.clearLayers();
+    if (!featureId) {
+      return;
+    }
+
+    const feature = this.committedFeatures.get(featureId);
+    if (feature) {
+      this.groups?.selection.addLayer(this.createCommittedLayer(feature, true));
+    }
   }
 
   project(coordinate: Coordinate): ScreenPoint {
@@ -222,6 +273,34 @@ export class LeafletRendererAdapter implements RendererAdapter {
   getTemporaryLayerCount(id: string): number {
     const layer = this.temporaryLayers.get(id);
     return layer instanceof L.LayerGroup ? layer.getLayers().length : layer ? 1 : 0;
+  }
+
+  getCommittedLayerCount(featureId: string): number {
+    const layer = this.committedLayers.get(featureId);
+    return layer instanceof L.LayerGroup ? layer.getLayers().length : layer ? 1 : 0;
+  }
+
+  getHandleLayerCount(featureId: string): number {
+    const handles = this.handleLayers.get(featureId);
+    return handles ? handles.vertices.length + handles.midpoints.length : 0;
+  }
+
+  fireCommittedFeatureClick(featureId: string, coordinate: Coordinate): void {
+    this.emit("featureClick", { featureId, coordinate });
+  }
+
+  fireCommittedFeatureDrag(featureId: string, from: Coordinate, to: Coordinate): void {
+    this.emit("featureDrag", { featureId, from, to });
+  }
+
+  fireVertexDrag(featureId: string, vertexIndex: number, coordinate: Coordinate): void {
+    const marker = this.handleLayers.get(featureId)?.vertices[vertexIndex];
+    marker?.setLatLng(toLatLng(coordinate));
+  }
+
+  fireMidpointClick(featureId: string, edgeIndex: number, coordinate: Coordinate): void {
+    const marker = this.handleLayers.get(featureId)?.midpoints[edgeIndex];
+    marker?.fire("click", { latlng: toLatLng(coordinate) });
   }
 
   private bindMapEvent(
@@ -264,10 +343,69 @@ export class LeafletRendererAdapter implements RendererAdapter {
       return group;
     }
 
-    group.addLayer(L.polyline(coordinates, {
-      ...this.styles.draftLine,
-      pane: this.paneName
-    }));
+    group.addLayer(
+      L.polyline(coordinates, {
+        ...this.styles.draftLine,
+        pane: this.paneName
+      })
+    );
+    return group;
+  }
+
+  private createCommittedLayer(feature: FeatureRecord, selected: boolean): L.Layer {
+    const coordinates = feature.coordinates?.map(toLatLng) ?? [];
+    const group = L.layerGroup([], { pane: this.paneName });
+    const style = selected ? this.styles.selected : this.styles.committed;
+    let dragStart: Coordinate | undefined;
+
+    const bindFeatureEvents = (layer: L.Layer) => {
+      layer.on("click", (event) => {
+        const latlng = (event as L.LeafletMouseEvent).latlng ?? coordinates[0];
+        this.emit("featureClick", {
+          featureId: feature.id,
+          coordinate: fromLatLng(latlng),
+          originalEvent: event
+        });
+      });
+      layer.on("mousedown", (event) => {
+        const latlng = (event as L.LeafletMouseEvent).latlng ?? coordinates[0];
+        dragStart = fromLatLng(latlng);
+      });
+      layer.on("mouseup", (event) => {
+        const latlng = (event as L.LeafletMouseEvent).latlng ?? coordinates[0];
+        if (dragStart) {
+          this.emit("featureDrag", {
+            featureId: feature.id,
+            from: dragStart,
+            to: fromLatLng(latlng),
+            originalEvent: event
+          });
+        }
+        dragStart = undefined;
+      });
+    };
+
+    if (feature.geometryType === "point") {
+      const marker = L.circleMarker(coordinates[0] ?? L.latLng(0, 0), {
+        ...this.styles.committed,
+        ...(selected ? this.styles.selected : {}),
+        pane: this.paneName
+      });
+      bindFeatureEvents(marker);
+      group.addLayer(marker);
+      return group;
+    }
+
+    if (feature.geometryType === "polygon") {
+      const polygon = L.polygon(coordinates, { ...style, pane: this.paneName });
+      bindFeatureEvents(polygon);
+      group.addLayer(polygon);
+      return group;
+    }
+
+    const polyline = L.polyline(coordinates, { ...style, pane: this.paneName });
+    bindFeatureEvents(polyline);
+    group.addLayer(polyline);
     return group;
   }
 
@@ -305,4 +443,11 @@ function toLatLng(coordinate: Coordinate): L.LatLng {
 
 function fromLatLng(latLng: L.LatLng): Coordinate {
   return { lat: latLng.lat, lon: latLng.lng };
+}
+
+function midpointCoordinate(left: Coordinate, right: Coordinate): Coordinate {
+  return {
+    lat: (left.lat + right.lat) / 2,
+    lon: (left.lon + right.lon) / 2
+  };
 }

@@ -183,7 +183,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
 
     const feature = draft.kind === "poi" ? this.finishPointDrawing(draft) : this.finishWayDrawing(draft);
     this.clearDraft();
-    this.adapter?.commitFeature(feature);
+    this.adapter?.commitFeature(this.withFeatureCoordinates(feature));
     this.events.emit("toolChanged", { tool: null });
     this.events.emit("drawingFinished", { featureId: feature.id });
     this.events.emit("featureCreated", { featureId: feature.id });
@@ -239,7 +239,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
       tags: nextTags,
       level: nextTags.level ?? feature.level
     });
-    this.adapter?.updateFeature(updated);
+    this.adapter?.updateFeature(this.withFeatureCoordinates(updated));
     this.events.emit("tagsUpdated", { featureId, tags: updated.tags });
     this.events.emit("featureUpdated", { featureId });
     return updated;
@@ -396,7 +396,8 @@ class HeadlessIndoorEditor implements IndoorEditor {
       geometryType: "point",
       level: draft.level,
       tags: draft.tags,
-      primitiveRefs: { nodeIds: [node.id], relationIds: [] }
+      primitiveRefs: { nodeIds: [node.id], relationIds: [] },
+      coordinates: [{ lat: node.lat, lon: node.lon }]
     });
   }
 
@@ -419,7 +420,8 @@ class HeadlessIndoorEditor implements IndoorEditor {
       geometryType: "polygon",
       level: draft.level,
       tags: draft.tags,
-      primitiveRefs: { nodeIds: way.nodes, wayId: way.id, relationIds: [] }
+      primitiveRefs: { nodeIds: way.nodes, wayId: way.id, relationIds: [] },
+      coordinates: coordinatesForNodeIds(way.nodes, this.primitiveStore)
     });
   }
 
@@ -459,7 +461,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
   }
 
   private afterGeometryUpdate(feature: FeatureRecord, wayId?: number): void {
-    this.adapter?.updateFeature(feature);
+    this.adapter?.updateFeature(this.withFeatureCoordinates(feature));
     if (this.selectedFeatureId === feature.id) {
       this.refreshFeatureHandles(feature.id);
     }
@@ -475,6 +477,13 @@ class HeadlessIndoorEditor implements IndoorEditor {
     } catch {
       return;
     }
+  }
+
+  private withFeatureCoordinates(feature: FeatureRecord): FeatureRecord {
+    return {
+      ...feature,
+      coordinates: coordinatesForNodeIds(feature.primitiveRefs.nodeIds, this.primitiveStore)
+    };
   }
 }
 
@@ -492,6 +501,16 @@ function getEditableNodeIds(feature: FeatureRecord): number[] {
 
 function uniqueNodeIds(nodeIds: readonly number[]): number[] {
   return [...new Set(nodeIds)];
+}
+
+function coordinatesForNodeIds(nodeIds: readonly number[], primitiveStore: PrimitiveStore): Coordinate[] {
+  return nodeIds.map((nodeId) => {
+    const node = primitiveStore.getNode(nodeId);
+    if (!node) {
+      throw new VertexEditError(`Node ${nodeId} does not exist`);
+    }
+    return { lat: node.lat, lon: node.lon };
+  });
 }
 
 function immutableSnapshot<T>(value: T): Readonly<T> {
