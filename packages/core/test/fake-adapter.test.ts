@@ -52,6 +52,13 @@ describe("FakeRendererAdapter", () => {
       ]
     });
     adapter.commitFeature(feature);
+    adapter.showSnapCandidate({
+      kind: "node",
+      nodeId: 1,
+      coordinate: { lat: 1, lon: 2 },
+      distancePx: 0
+    });
+    adapter.clearSnapCandidate();
     adapter.setSelectedFeature(feature.id);
     expect(adapter.project({ lat: 5, lon: 6 })).toEqual({ x: 6, y: 5 });
     expect(adapter.unproject({ x: 7, y: 8 })).toEqual({ lat: 8, lon: 7 });
@@ -60,6 +67,8 @@ describe("FakeRendererAdapter", () => {
     expect(adapter.calls.map((call) => call.name)).toEqual([
       "showTemporaryFeature",
       "commitFeature",
+      "showSnapCandidate",
+      "clearSnapCandidate",
       "setSelectedFeature",
       "project",
       "unproject"

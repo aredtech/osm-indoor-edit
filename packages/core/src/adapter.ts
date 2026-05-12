@@ -1,4 +1,5 @@
 import type { FeatureRecord } from "./feature-store";
+import type { ResolvedSnap } from "./snapping";
 
 export interface Coordinate {
   lat: number;
@@ -65,6 +66,8 @@ export interface RendererAdapter {
   clearVertexHandles(featureId?: string): void;
   setSelectedFeature(featureId: string | null): void;
   setLevel?(level: string | undefined): void;
+  showSnapCandidate?(candidate: ResolvedSnap): void;
+  clearSnapCandidate?(): void;
   project(coordinate: Coordinate): ScreenPoint;
   unproject(point: ScreenPoint): Coordinate;
 }

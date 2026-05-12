@@ -7,6 +7,7 @@ import type {
   VertexHandle
 } from "./adapter";
 import type { FeatureRecord } from "./feature-store";
+import type { ResolvedSnap } from "./snapping";
 
 export interface FakeAdapterCall {
   name: string;
@@ -100,6 +101,14 @@ export class FakeRendererAdapter implements RendererAdapter {
 
   setLevel(level: string | undefined): void {
     this.record("setLevel", level);
+  }
+
+  showSnapCandidate(candidate: ResolvedSnap): void {
+    this.record("showSnapCandidate", candidate);
+  }
+
+  clearSnapCandidate(): void {
+    this.record("clearSnapCandidate");
   }
 
   project(coordinate: Coordinate): ScreenPoint {

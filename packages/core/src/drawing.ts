@@ -1,5 +1,5 @@
 import type { Coordinate, TemporaryGeometry } from "./adapter";
-import type { Tags } from "./types";
+import type { PrimitiveId, Tags } from "./types";
 
 export type DrawKind = "room" | "corridor" | "poi";
 
@@ -12,6 +12,7 @@ export interface DraftDrawingState {
   level: string;
   tags: Tags;
   coordinates: Coordinate[];
+  nodeIds?: Array<PrimitiveId | undefined>;
 }
 
 export function createMinimumTags(kind: DrawKind, level: string, hostTags: Tags = {}): Tags {

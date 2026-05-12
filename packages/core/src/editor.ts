@@ -25,6 +25,8 @@ import { FeatureStore, type FeatureRecord } from "./feature-store";
 import { normalizeOsmInEditExport } from "./import-export";
 import { ElementIdAllocator } from "./ids";
 import { PrimitiveStore } from "./primitive-store";
+import { DEFAULT_SNAP_TOLERANCE_PX, resolveSnapCandidate, type SnapSettings } from "./snapping";
+import { collectSnapCandidates } from "./topology";
 import type { OsmElement, OsmInEditExport, Tags } from "./types";
 
 export interface EditorOptions {
@@ -33,6 +35,7 @@ export interface EditorOptions {
   clock?: Clock;
   ids?: ElementIdAllocator;
   defaultLevel?: string;
+  snapping?: boolean | Partial<SnapSettings>;
 }
 
 export interface EditorStateSnapshot {
@@ -56,6 +59,8 @@ export interface IndoorEditor {
   moveVertex(featureId: string, vertexIndex: number, coordinate: Coordinate): FeatureRecord;
   insertVertex(featureId: string, edgeIndex: number, coordinate: Coordinate): FeatureRecord;
   moveFeature(featureId: string, delta: CoordinateDelta): FeatureRecord;
+  setSnapping(options: boolean | Partial<SnapSettings>): void;
+  getSnapping(): SnapSettings;
   getState(): Readonly<EditorStateSnapshot>;
   getElements(): readonly OsmElement[];
   loadOsmInEdit(data: OsmInEditExport): void;
@@ -84,6 +89,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
   private readonly clock: Clock;
   private readonly ids: ElementIdAllocator;
   private level: string | undefined;
+  private snapping: SnapSettings;
   private draft: DraftDrawingState | undefined;
   private selectedFeatureId: string | null = null;
   private destroyed = false;
@@ -94,6 +100,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
     this.primitiveStore = new PrimitiveStore({ clock: this.clock, ids: this.ids });
     this.adapter = options.adapter;
     this.level = options.defaultLevel;
+    this.snapping = normalizeSnapSettings(options.snapping);
 
     if (this.adapter && "target" in options) {
       this.adapter.attach(options.target);
@@ -157,7 +164,8 @@ class HeadlessIndoorEditor implements IndoorEditor {
       kind,
       level: this.level,
       tags: createMinimumTags(kind, this.level, options.tags),
-      coordinates: []
+      coordinates: [],
+      nodeIds: []
     };
     this.events.emit("toolChanged", { tool: kind });
     this.events.emit("drawingStarted", { kind });
@@ -327,6 +335,17 @@ class HeadlessIndoorEditor implements IndoorEditor {
     return updated;
   }
 
+  setSnapping(options: boolean | Partial<SnapSettings>): void {
+    this.snapping = normalizeSnapSettings(options);
+    if (!this.snapping.enabled) {
+      this.adapter?.clearSnapCandidate?.();
+    }
+  }
+
+  getSnapping(): SnapSettings {
+    return { ...this.snapping };
+  }
+
   getState(): Readonly<EditorStateSnapshot> {
     return immutableSnapshot({
       level: this.level,
@@ -381,7 +400,9 @@ class HeadlessIndoorEditor implements IndoorEditor {
       return;
     }
 
-    this.draft.coordinates.push(coordinate);
+    const snapped = this.resolveDraftSnap(coordinate);
+    this.draft.coordinates.push(snapped.coordinate);
+    this.draft.nodeIds?.push(snapped.nodeId);
     const geometry = buildTemporaryGeometry(this.draft);
     if (geometry) {
       this.adapter?.showTemporaryFeature("draft", geometry);
@@ -391,11 +412,15 @@ class HeadlessIndoorEditor implements IndoorEditor {
 
   private finishPointDrawing(draft: DraftDrawingState): FeatureRecord {
     const coordinate = draft.coordinates[0];
-    const node = this.primitiveStore.createNode({
-      lat: coordinate.lat,
-      lon: coordinate.lon,
-      tags: draft.tags
-    });
+    const snappedNodeId = draft.nodeIds?.[0];
+    const node =
+      snappedNodeId === undefined
+        ? this.primitiveStore.createNode({
+            lat: coordinate.lat,
+            lon: coordinate.lon,
+            tags: draft.tags
+          })
+        : this.requireNode(snappedNodeId);
 
     return this.featureStore.add({
       kind: draft.kind,
@@ -408,15 +433,20 @@ class HeadlessIndoorEditor implements IndoorEditor {
   }
 
   private finishWayDrawing(draft: DraftDrawingState): FeatureRecord {
-    const nodes = draft.coordinates.map((coordinate) =>
-      this.primitiveStore.createNode({
+    const nodeIds = draft.coordinates.map((coordinate, index) => {
+      const existingNodeId = draft.nodeIds?.[index];
+      if (existingNodeId !== undefined) {
+        this.requireNode(existingNodeId);
+        return existingNodeId;
+      }
+      return this.primitiveStore.createNode({
         lat: coordinate.lat,
         lon: coordinate.lon,
         tags: {}
-      })
-    );
+      }).id;
+    });
     const way = this.primitiveStore.createWay({
-      nodes: nodes.map((node) => node.id),
+      nodes: nodeIds,
       tags: draft.tags,
       closed: true
     });
@@ -434,6 +464,40 @@ class HeadlessIndoorEditor implements IndoorEditor {
   private clearDraft(): void {
     this.draft = undefined;
     this.adapter?.clearTemporaryFeature("draft");
+    this.adapter?.clearSnapCandidate?.();
+  }
+
+  private resolveDraftSnap(coordinate: Coordinate): { coordinate: Coordinate; nodeId?: number } {
+    if (!this.snapping.enabled || !this.adapter) {
+      return { coordinate };
+    }
+
+    const candidate = resolveSnapCandidate(
+      coordinate,
+      collectSnapCandidates(this.primitiveStore.getElements()),
+      (snapCoordinate) => this.adapter!.project(snapCoordinate),
+      this.snapping.tolerancePx
+    );
+
+    if (!candidate) {
+      this.adapter.clearSnapCandidate?.();
+      return { coordinate };
+    }
+
+    if (candidate.kind === "node") {
+      this.adapter.showSnapCandidate?.(candidate);
+      return { coordinate: candidate.coordinate, nodeId: candidate.nodeId };
+    }
+
+    const { node, way } = this.primitiveStore.insertNodeInWayEdge(
+      candidate.wayId,
+      candidate.edgeIndex,
+      candidate.coordinate
+    );
+    const resolved = { ...candidate, coordinate: { lat: node.lat, lon: node.lon } };
+    this.refreshFeaturesForWay(candidate.wayId, way.nodes);
+    this.adapter.showSnapCandidate?.(resolved);
+    return { coordinate: resolved.coordinate, nodeId: node.id };
   }
 
   private requireFeature(featureId: string): FeatureRecord {
@@ -449,6 +513,14 @@ class HeadlessIndoorEditor implements IndoorEditor {
       throw new VertexEditError(`Feature ${feature.id} is not backed by a way`);
     }
     return feature.primitiveRefs.wayId;
+  }
+
+  private requireNode(nodeId: number) {
+    const node = this.primitiveStore.getNode(nodeId);
+    if (!node) {
+      throw new VertexEditError(`Node ${nodeId} does not exist`);
+    }
+    return node;
   }
 
   private refreshFeatureHandles(featureId: string): void {
@@ -475,6 +547,21 @@ class HeadlessIndoorEditor implements IndoorEditor {
       this.events.emit("wayUpdated", { wayId });
     }
     this.events.emit("featureUpdated", { featureId: feature.id });
+  }
+
+  private refreshFeaturesForWay(wayId: number, nodeIds: number[]): void {
+    for (const feature of this.featureStore.list()) {
+      if (feature.primitiveRefs.wayId !== wayId) {
+        continue;
+      }
+
+      const updated = this.featureStore.update(feature.id, {
+        primitiveRefs: { ...feature.primitiveRefs, nodeIds }
+      });
+      this.adapter?.updateFeature(this.withFeatureCoordinates(updated));
+      this.events.emit("featureUpdated", { featureId: feature.id });
+    }
+    this.events.emit("wayUpdated", { wayId });
   }
 
   private deleteNodeIfUnreferenced(nodeId: number): void {
@@ -536,4 +623,19 @@ function deepFreeze<T>(value: T): Readonly<T> {
   }
 
   return value as Readonly<T>;
+}
+
+function normalizeSnapSettings(options: boolean | Partial<SnapSettings> | undefined): SnapSettings {
+  if (options === true) {
+    return { enabled: true, tolerancePx: DEFAULT_SNAP_TOLERANCE_PX };
+  }
+
+  if (options === false || options === undefined) {
+    return { enabled: false, tolerancePx: DEFAULT_SNAP_TOLERANCE_PX };
+  }
+
+  return {
+    enabled: options.enabled ?? false,
+    tolerancePx: options.tolerancePx ?? DEFAULT_SNAP_TOLERANCE_PX
+  };
 }
