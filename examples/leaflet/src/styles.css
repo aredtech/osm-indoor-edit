@@ -1,0 +1,161 @@
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #17212B;
+  letter-spacing: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
+.map {
+  min-height: 100vh;
+  width: 100%;
+  background: #E8EEF5;
+}
+
+.controls,
+.export-panel {
+  position: absolute;
+  z-index: 500;
+  box-sizing: border-box;
+  border: 1px solid #D7DCE2;
+  background: #F7F8FA;
+  box-shadow: 0 10px 28px rgb(23 33 43 / 12%);
+}
+
+.controls {
+  top: 24px;
+  left: 56px;
+  width: min(280px, calc(100vw - 80px));
+  padding: 16px;
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+button,
+select,
+input {
+  box-sizing: border-box;
+  min-height: 36px;
+  border: 1px solid #D7DCE2;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #17212B;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
+
+button[data-action="room"],
+button[data-action="finish"] {
+  border-color: #2563EB;
+}
+
+.danger {
+  border-color: #DC2626;
+  color: #DC2626;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #5D6976;
+}
+
+.field select,
+.field input,
+.controls > button {
+  width: 100%;
+}
+
+.controls > button {
+  margin-top: 8px;
+}
+
+.status {
+  min-height: 20px;
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #5D6976;
+}
+
+.export-panel {
+  top: 24px;
+  right: 24px;
+  width: min(360px, calc(100vw - 48px));
+  padding: 16px;
+}
+
+.export-panel h1 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.export-panel p {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #5D6976;
+}
+
+.export-panel pre {
+  max-height: 48vh;
+  margin: 0;
+  overflow: auto;
+  border: 1px solid #D7DCE2;
+  border-radius: 6px;
+  background: #FFFFFF;
+  padding: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .controls {
+    inset: auto 8px 8px;
+    width: auto;
+    max-height: 44vh;
+    overflow: auto;
+  }
+
+  .export-panel {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 36vh;
+  }
+
+  .export-panel pre {
+    max-height: 18vh;
+  }
+}

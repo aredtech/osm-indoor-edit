@@ -3,8 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build"
+  },
   "dependencies": {
     "@osminedit-lib/core": "workspace:*",
-    "@osminedit-lib/leaflet": "workspace:*"
+    "@osminedit-lib/leaflet": "workspace:*",
+    "leaflet": "^1.9.4"
   }
 }

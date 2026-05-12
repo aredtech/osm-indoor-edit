@@ -29,6 +29,9 @@ importers:
       '@osminedit-lib/leaflet':
         specifier: workspace:*
         version: link:../../packages/leaflet
+      leaflet:
+        specifier: ^1.9.4
+        version: 1.9.4
 
   examples/maplibre:
     dependencies:
