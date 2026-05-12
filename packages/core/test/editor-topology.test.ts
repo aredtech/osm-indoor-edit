@@ -62,4 +62,46 @@ describe("editor topology", () => {
     expect(updatedFeatureIds).toEqual(["feature-1", "feature-2"]);
     expect(featureUpdated).toEqual(["feature-1", "feature-2"]);
   });
+
+  it("detaches shared geometry so later movement affects only the detached feature", () => {
+    const { adapter, editor } = loadTwoRoomsSharingWall();
+
+    const detached = editor.detachFeatureGeometry("feature-1");
+    editor.moveVertex(detached.id, 1, { lat: -5, lon: 15 });
+
+    const nodes = editor.exportOsmInEdit().elements.filter((element) => element.type === "node");
+    const ways = editor.exportOsmInEdit().elements.filter((element) => element.type === "way");
+
+    expect(detached.primitiveRefs.nodeIds).toEqual([100, 101, 102, 103, 100]);
+    expect(nodes).toContainEqual(
+      expect.objectContaining({ type: "node", id: 101, lat: -5, lon: 15 })
+    );
+    expect(nodes).toContainEqual(expect.objectContaining({ type: "node", id: 2, lat: 0, lon: 10 }));
+    expect(ways).toMatchObject([
+      { type: "way", id: 10, nodes: [100, 101, 102, 103, 100] },
+      { type: "way", id: 11, nodes: [2, 5, 6, 3, 2] }
+    ]);
+    expect(adapter.calls.map((call) => call.name)).toContain("updateFeature");
+  });
+
+  it("preserves shared nodes when deleting one feature", () => {
+    const { editor } = loadTwoRoomsSharingWall();
+
+    editor.deleteFeature("feature-1");
+
+    const elements = editor.exportOsmInEdit().elements;
+    expect(elements).toContainEqual(expect.objectContaining({ type: "node", id: 2 }));
+    expect(elements).toContainEqual(expect.objectContaining({ type: "node", id: 3 }));
+    expect(elements).toContainEqual(expect.objectContaining({ type: "way", id: 11 }));
+    expect(elements).not.toContainEqual(expect.objectContaining({ type: "way", id: 10 }));
+  });
+
+  it("throws cannot detach for point-only features", () => {
+    const { adapter, editor } = createTopologyEditor();
+    editor.startDraw("poi", { tags: { amenity: "bench" } });
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    const point = editor.finishDraw();
+
+    expect(() => editor.detachFeatureGeometry(point.id)).toThrow("cannot detach");
+  });
 });

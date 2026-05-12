@@ -59,6 +59,7 @@ export interface IndoorEditor {
   moveVertex(featureId: string, vertexIndex: number, coordinate: Coordinate): FeatureRecord;
   insertVertex(featureId: string, edgeIndex: number, coordinate: Coordinate): FeatureRecord;
   moveFeature(featureId: string, delta: CoordinateDelta): FeatureRecord;
+  detachFeatureGeometry(featureId: string): FeatureRecord;
   setSnapping(options: boolean | Partial<SnapSettings>): void;
   getSnapping(): SnapSettings;
   getState(): Readonly<EditorStateSnapshot>;
@@ -224,6 +225,9 @@ class HeadlessIndoorEditor implements IndoorEditor {
     if (feature.primitiveRefs.wayId !== undefined) {
       this.primitiveStore.deleteElement("way", feature.primitiveRefs.wayId);
     }
+    for (const relationId of feature.primitiveRefs.relationIds ?? []) {
+      this.primitiveStore.deleteElement("relation", relationId);
+    }
 
     for (const nodeId of uniqueNodeIds(feature.primitiveRefs.nodeIds)) {
       this.deleteNodeIfUnreferenced(nodeId);
@@ -329,6 +333,25 @@ class HeadlessIndoorEditor implements IndoorEditor {
 
     this.afterSharedGeometryUpdate(movedNodeIds);
     return this.requireFeature(featureId);
+  }
+
+  detachFeatureGeometry(featureId: string): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const wayId = feature.primitiveRefs.wayId;
+    if (wayId === undefined || feature.geometryType === "point" || feature.geometryType === "relation") {
+      throw new VertexEditError(`Feature ${feature.id} cannot detach geometry`);
+    }
+
+    const clonedNodeIds = getEditableNodeIds(feature).map((nodeId) => {
+      const node = this.requireNode(nodeId);
+      return this.primitiveStore.createNode({ lat: node.lat, lon: node.lon }).id;
+    });
+    const way = this.primitiveStore.updateWayNodes(wayId, clonedNodeIds);
+    const updated = this.featureStore.update(feature.id, {
+      primitiveRefs: { ...feature.primitiveRefs, nodeIds: way.nodes }
+    });
+    this.afterGeometryUpdate(updated, wayId);
+    return updated;
   }
 
   setSnapping(options: boolean | Partial<SnapSettings>): void {
