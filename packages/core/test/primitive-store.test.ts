@@ -4,6 +4,7 @@ import {
   ElementIdAllocator,
   fixedClock,
   PrimitiveStore,
+  canDeleteVertex,
   type OsmNode,
   type OsmRelation,
   type OsmWay
@@ -84,8 +85,9 @@ describe("PrimitiveStore", () => {
 
     const first = store.createNode({ lat: 1, lon: 2 });
     const second = store.createNode({ lat: 3, lon: 4 });
+    const third = store.createNode({ lat: 5, lon: 6 });
     const way = store.createWay({
-      nodes: [first.id, second.id, first.id],
+      nodes: [first.id, second.id, third.id, first.id],
       tags: { indoor: "room" }
     });
 
@@ -123,5 +125,56 @@ describe("PrimitiveStore", () => {
         timestamp: "2026-05-11T16:40:41Z"
       })
     ).toThrow(DataIntegrityError);
+  });
+
+  it("updates node coordinates", () => {
+    const store = new PrimitiveStore();
+    store.importElement(nodeA);
+
+    const updated = store.updateNodeCoordinate(1, { lat: 10, lon: 20 });
+
+    expect(updated).toMatchObject({ id: 1, lat: 10, lon: 20 });
+    expect(store.getNode(1)).toMatchObject({ lat: 10, lon: 20 });
+  });
+
+  it("updates way nodes and preserves closed area closure", () => {
+    const store = new PrimitiveStore();
+    store.importElement(nodeA);
+    store.importElement(nodeB);
+    store.importElement(nodeC);
+    const nodeD = store.createNode({ lat: 28.391838, lon: 77.292386 });
+    store.importElement(closedWay);
+
+    const updated = store.updateWayNodes(10, [1, 2, nodeD.id, 3]);
+
+    expect(updated.nodes).toEqual([1, 2, nodeD.id, 3, 1]);
+  });
+
+  it("updates element tags", () => {
+    const store = new PrimitiveStore();
+    store.importElement(nodeA);
+
+    const updated = store.updateElementTags("node", 1, { amenity: "bench" });
+
+    expect(updated).toMatchObject({ type: "node", tags: { amenity: "bench" } });
+  });
+
+  it("deletes elements when they are not referenced", () => {
+    const store = new PrimitiveStore();
+    store.importElement(nodeA);
+
+    expect(store.deleteElement("node", 1)).toBe(true);
+    expect(store.getNode(1)).toBeUndefined();
+  });
+
+  it("rejects invalid polygon vertex deletion", () => {
+    const store = new PrimitiveStore();
+    store.importElement(nodeA);
+    store.importElement(nodeB);
+    store.importElement(nodeC);
+    store.importElement(closedWay);
+
+    expect(canDeleteVertex("polygon", 3)).toBe(false);
+    expect(() => store.updateWayNodes(10, [1, 2])).toThrow(DataIntegrityError);
   });
 });

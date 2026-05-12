@@ -11,6 +11,7 @@ import type {
   PrimitiveId,
   Tags
 } from "./types";
+import type { Coordinate } from "./adapter";
 
 export interface PrimitiveStoreOptions {
   clock?: Clock;
@@ -106,6 +107,95 @@ export class PrimitiveStore {
     return cloneElement(relation);
   }
 
+  updateNodeCoordinate(id: PrimitiveId, coordinate: Coordinate): OsmNode {
+    const node = this.nodes.get(id);
+    if (!node) {
+      throw new DataIntegrityError(`Node ${id} does not exist`);
+    }
+
+    const updated: OsmNode = {
+      ...node,
+      lat: coordinate.lat,
+      lon: coordinate.lon
+    };
+    this.nodes.set(id, updated);
+    return cloneElement(updated);
+  }
+
+  updateWayNodes(id: PrimitiveId, nodes: PrimitiveId[]): OsmWay {
+    const way = this.ways.get(id);
+    if (!way) {
+      throw new DataIntegrityError(`Way ${id} does not exist`);
+    }
+
+    const nextNodes = isClosedAreaWay(way) ? closeNodeSequence(nodes) : [...nodes];
+    const updated: OsmWay = {
+      ...way,
+      nodes: nextNodes
+    };
+    this.assertWayReferences(updated);
+    this.ways.set(id, updated);
+    return cloneElement(updated);
+  }
+
+  updateElementTags(type: OsmElement["type"], id: PrimitiveId, tags: Tags): OsmElement {
+    if (type === "node") {
+      const node = this.nodes.get(id);
+      if (!node) {
+        throw new DataIntegrityError(`Node ${id} does not exist`);
+      }
+      const updated = { ...node, tags: { ...tags } };
+      this.nodes.set(id, updated);
+      return cloneElement(updated);
+    }
+
+    if (type === "way") {
+      const way = this.ways.get(id);
+      if (!way) {
+        throw new DataIntegrityError(`Way ${id} does not exist`);
+      }
+      const updated = { ...way, tags: { ...tags } };
+      this.assertWayReferences(updated);
+      this.ways.set(id, updated);
+      return cloneElement(updated);
+    }
+
+    const relation = this.relations.get(id);
+    if (!relation) {
+      throw new DataIntegrityError(`Relation ${id} does not exist`);
+    }
+    const updated = { ...relation, tags: { ...tags } };
+    this.relations.set(id, updated);
+    return cloneElement(updated);
+  }
+
+  deleteElement(type: OsmElement["type"], id: PrimitiveId): boolean {
+    if (type === "node") {
+      for (const way of this.ways.values()) {
+        if (way.nodes.includes(id)) {
+          throw new DataIntegrityError(`Node ${id} is referenced by way ${way.id}`);
+        }
+      }
+      for (const relation of this.relations.values()) {
+        if (relation.members.some((member) => member.type === "node" && member.ref === id)) {
+          throw new DataIntegrityError(`Node ${id} is referenced by relation ${relation.id}`);
+        }
+      }
+      return this.nodes.delete(id);
+    }
+
+    if (type === "way") {
+      for (const relation of this.relations.values()) {
+        if (relation.members.some((member) => member.type === "way" && member.ref === id)) {
+          throw new DataIntegrityError(`Way ${id} is referenced by relation ${relation.id}`);
+        }
+      }
+      return this.ways.delete(id);
+    }
+
+    return this.relations.delete(id);
+  }
+
   getNode(id: PrimitiveId): OsmNode | undefined {
     const node = this.nodes.get(id);
     return node ? cloneElement(node) : undefined;
@@ -157,6 +247,10 @@ export class PrimitiveStore {
     if (isClosedAreaWay(way) && !isClosedWay(way)) {
       throw new DataIntegrityError(`Closed way ${way.id} must repeat the first node at the end`);
     }
+
+    if (isClosedAreaWay(way) && distinctNodeIds(way.nodes).length < 3) {
+      throw new DataIntegrityError(`Closed way ${way.id} must contain at least 3 distinct nodes`);
+    }
   }
 
   private assertRelationReferences(relation: OsmRelation): void {
@@ -194,6 +288,10 @@ export function isClosedWay(way: OsmWay): boolean {
 export function isClosedAreaWay(way: OsmWay): boolean {
   const indoorKind = way.tags.indoor;
   return way.tags.area === "yes" || indoorKind === "room" || indoorKind === "corridor";
+}
+
+function distinctNodeIds(nodes: PrimitiveId[]): PrimitiveId[] {
+  return [...new Set(nodes)];
 }
 
 function sortById<T extends { id: PrimitiveId }>(items: Iterable<T>): T[] {

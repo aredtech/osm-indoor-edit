@@ -105,6 +105,10 @@ export class FeatureStore {
     return this.features.delete(id);
   }
 
+  remove(id: string): boolean {
+    return this.delete(id);
+  }
+
   clear(): void {
     this.features.clear();
     this.nextFeatureId = 1;
