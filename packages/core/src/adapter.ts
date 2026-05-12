@@ -1,0 +1,51 @@
+import type { FeatureRecord } from "./feature-store";
+
+export interface Coordinate {
+  lat: number;
+  lon: number;
+}
+
+export interface ScreenPoint {
+  x: number;
+  y: number;
+}
+
+export interface TemporaryGeometry {
+  geometryType: "point" | "line" | "polygon";
+  coordinates: Coordinate[];
+}
+
+export interface VertexHandle {
+  id: string;
+  coordinate: Coordinate;
+}
+
+export interface RendererAdapterEventMap {
+  pointerDown: { coordinate: Coordinate; originalEvent?: unknown };
+  pointerMove: { coordinate: Coordinate; originalEvent?: unknown };
+  pointerUp: { coordinate: Coordinate; originalEvent?: unknown };
+  vertexDrag: { handleId: string; coordinate: Coordinate; originalEvent?: unknown };
+}
+
+export interface RendererAdapter {
+  attach(target: unknown): void;
+  detach(): void;
+  on<TName extends keyof RendererAdapterEventMap>(
+    eventName: TName,
+    handler: (event: RendererAdapterEventMap[TName]) => void
+  ): () => void;
+  off<TName extends keyof RendererAdapterEventMap>(
+    eventName: TName,
+    handler: (event: RendererAdapterEventMap[TName]) => void
+  ): void;
+  showTemporaryFeature(id: string, geometry: TemporaryGeometry): void;
+  clearTemporaryFeature(id?: string): void;
+  commitFeature(feature: FeatureRecord): void;
+  updateFeature(feature: FeatureRecord): void;
+  removeFeature(featureId: string): void;
+  showVertexHandles(featureId: string, handles: VertexHandle[]): void;
+  clearVertexHandles(featureId?: string): void;
+  setSelectedFeature(featureId: string | null): void;
+  project(coordinate: Coordinate): ScreenPoint;
+  unproject(point: ScreenPoint): Coordinate;
+}
