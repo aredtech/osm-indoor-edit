@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 test("Leaflet example exposes host controls and export status", async ({ page }) => {
   await page.goto("/");
 
+  await expect(page.locator("#map")).toBeVisible();
+  await expect(page.locator(".leaflet-tile-pane")).toBeAttached();
+  await expect(page.locator(".leaflet-tile-pane img").first()).toBeAttached();
   await expect(page.getByRole("button", { name: "Draw room" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Draw corridor" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Add POI" })).toBeVisible();

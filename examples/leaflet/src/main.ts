@@ -72,12 +72,19 @@ if (!mapElement) {
   throw new Error("Missing map element");
 }
 
+const sampleCenter: L.LatLngExpression = [28.39186, 77.29243];
+
 const map = L.map(mapElement, {
-  center: [57.7089, 11.9746],
+  center: sampleCenter,
   zoom: 19,
   zoomControl: true,
-  attributionControl: false
+  attributionControl: true
 });
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 22,
+  attribution: "&copy; OpenStreetMap contributors"
+}).addTo(map);
 
 const adapter = createLeafletAdapter();
 const editor = createEditor({ adapter, target: map, defaultLevel: "0" });
@@ -179,6 +186,7 @@ function runAction(action: string): void {
       latestFeature = editor.getState().features[0] ?? null;
       selectedFeatureId = latestFeature?.id ?? null;
       editor.selectFeature(selectedFeatureId);
+      map.setView(sampleCenter, 19);
       setStatus("Sample loaded");
     }
     if (action === "validate") {
