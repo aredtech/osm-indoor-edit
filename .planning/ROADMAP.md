@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Headless Core Foundation** - Typed packages, primitive store, feature links, adapter contract, and import/export core. (completed 2026-05-12)
 - [x] **Phase 2: Leaflet Editing MVP** - First visible end-to-end drawing and editing experience through the Leaflet adapter. (completed 2026-05-12)
-- [ ] **Phase 3: Topology, Relations, and Validation** - Shared nodes/walls, relation primitives, robust validation, and import/edit/export round trips.
+- [x] **Phase 3: Topology, Relations, and Validation** - Shared nodes/walls, relation primitives, robust validation, and import/edit/export round trips. (completed 2026-05-12)
 - [ ] **Phase 4: MapLibre Parity and Host Integration** - MapLibre adapter, complete event surface, style overrides, and configurable behavior.
 - [ ] **Phase 5: Examples, Docs, and Release Readiness** - Vanilla examples and documentation that make the SDK usable by host apps.
 
@@ -121,6 +121,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Headless Core Foundation | 4/4 | Complete | 2026-05-12 |
 | 2. Leaflet Editing MVP | 4/4 | Complete | 2026-05-12 |
-| 3. Topology, Relations, and Validation | 0/4 | Not started | - |
+| 3. Topology, Relations, and Validation | 4/4 | Complete    | 2026-05-12 |
 | 4. MapLibre Parity and Host Integration | 0/3 | Not started | - |
 | 5. Examples, Docs, and Release Readiness | 0/2 | Not started | - |

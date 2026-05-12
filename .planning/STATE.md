@@ -8,10 +8,10 @@ last_updated: "2026-05-12T11:32:31.669Z"
 last_activity: 2026-05-12
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 3
   total_plans: 12
   completed_plans: 12
-  percent: 80
+  percent: 60
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-12)
 
 **Core value:** Developers can add reliable indoor map editing behavior to a Leaflet or MapLibre frontend and export valid OsmInEdit-style node/way/relation JSON without building geometry editing themselves.
-**Current focus:** Phase 03 — topology-relations-and-validation
+**Current focus:** Phase 04 — maplibre-parity-and-host-integration
 
 ## Current Position
 
@@ -30,7 +30,7 @@ Plan: Not started
 Status: Ready to plan
 Last activity: 2026-05-12
 
-Progress: [██████████] 100%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
