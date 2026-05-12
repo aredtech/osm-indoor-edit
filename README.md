@@ -51,7 +51,7 @@ See [docs/sdk-host-boundary.md](docs/sdk-host-boundary.md) for the full boundary
 ## Documentation
 
 - [SDK and host responsibilities](docs/sdk-host-boundary.md)
-- [API recipes](docs/api-recipes.md)
+- [API recipes](docs/api-recipes.md) for `createEditor`, drawing, tags, validation, load/export, events, snapping, defaults, and `idStrategy`
 - [Release readiness](docs/release.md)
 - [Seed PRD](docs/osm-indoor-prd.md)
 
