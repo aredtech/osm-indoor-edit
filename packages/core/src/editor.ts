@@ -290,10 +290,8 @@ class HeadlessIndoorEditor implements IndoorEditor {
     }
 
     this.primitiveStore.updateNodeCoordinate(nodeId, coordinate);
-    const updated = this.featureStore.update(featureId, {});
-    this.events.emit("nodeMoved", { nodeId });
-    this.afterGeometryUpdate(updated, feature.primitiveRefs.wayId);
-    return updated;
+    this.afterSharedGeometryUpdate([nodeId]);
+    return this.requireFeature(featureId);
   }
 
   insertVertex(featureId: string, edgeIndex: number, coordinate: Coordinate): FeatureRecord {
@@ -327,12 +325,10 @@ class HeadlessIndoorEditor implements IndoorEditor {
         throw new VertexEditError(`Node ${nodeId} does not exist`);
       }
       this.primitiveStore.updateNodeCoordinate(nodeId, translateCoordinate(node, delta));
-      this.events.emit("nodeMoved", { nodeId });
     }
 
-    const updated = this.featureStore.update(featureId, {});
-    this.afterGeometryUpdate(updated, feature.primitiveRefs.wayId);
-    return updated;
+    this.afterSharedGeometryUpdate(movedNodeIds);
+    return this.requireFeature(featureId);
   }
 
   setSnapping(options: boolean | Partial<SnapSettings>): void {
@@ -547,6 +543,37 @@ class HeadlessIndoorEditor implements IndoorEditor {
       this.events.emit("wayUpdated", { wayId });
     }
     this.events.emit("featureUpdated", { featureId: feature.id });
+  }
+
+  private afterSharedGeometryUpdate(changedNodeIds: readonly number[]): void {
+    const affectedFeatures = new Map<string, FeatureRecord>();
+    const affectedWayIds = new Set<number>();
+
+    for (const nodeId of uniqueNodeIds(changedNodeIds)) {
+      this.events.emit("nodeMoved", { nodeId });
+      for (const way of this.primitiveStore.getWaysReferencingNode(nodeId)) {
+        affectedWayIds.add(way.id);
+      }
+      for (const feature of this.featureStore.findByNodeId(nodeId)) {
+        affectedFeatures.set(feature.id, feature);
+        if (feature.primitiveRefs.wayId !== undefined) {
+          affectedWayIds.add(feature.primitiveRefs.wayId);
+        }
+      }
+    }
+
+    for (const feature of affectedFeatures.values()) {
+      const updated = this.featureStore.update(feature.id, {});
+      this.adapter?.updateFeature(this.withFeatureCoordinates(updated));
+      if (this.selectedFeatureId === feature.id) {
+        this.refreshFeatureHandles(feature.id);
+      }
+      this.events.emit("featureUpdated", { featureId: feature.id });
+    }
+
+    for (const wayId of affectedWayIds) {
+      this.events.emit("wayUpdated", { wayId });
+    }
   }
 
   private refreshFeaturesForWay(wayId: number, nodeIds: number[]): void {
