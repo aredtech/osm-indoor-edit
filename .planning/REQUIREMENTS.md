@@ -29,7 +29,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **API-03**: Developer can start, cancel, and finish drawing for supported feature types.
 - [x] **API-04**: Developer can select, delete, move, and update tags for created or imported features.
 - [ ] **API-05**: Developer can subscribe and unsubscribe to typed editor events.
-- [ ] **API-06**: Developer can configure default tags, ID strategy options, validation rules, and editing styles.
+- [x] **API-06**: Developer can configure default tags, ID strategy options, validation rules, and editing styles.
 
 ### Drawing Behavior
 
@@ -94,16 +94,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Events and Styling
 
-- [ ] **EVT-01**: SDK emits lifecycle events for ready, tool changes, level changes, drawing start/update/cancel/finish, feature create/select/update/delete, primitive updates, validation changes, export readiness, and errors.
-- [ ] **EVT-02**: Host applications can update their own UI entirely through API calls and events without SDK-owned controls.
-- [ ] **STYLE-01**: SDK provides default styles for temporary vertices, temporary lines, polygon fills, committed features, selection, hover, vertex handles, snap indicators, doors, and POIs.
-- [ ] **STYLE-02**: Host applications can override editing visual styles.
+- [x] **EVT-01**: SDK emits lifecycle events for ready, tool changes, level changes, drawing start/update/cancel/finish, feature create/select/update/delete, primitive updates, validation changes, export readiness, and errors.
+- [x] **EVT-02**: Host applications can update their own UI entirely through API calls and events without SDK-owned controls.
+- [x] **STYLE-01**: SDK provides default styles for temporary vertices, temporary lines, polygon fills, committed features, selection, hover, vertex handles, snap indicators, doors, and POIs.
+- [x] **STYLE-02**: Host applications can override editing visual styles.
 
 ### Renderer Adapters
 
 - [ ] **ADAPT-01**: Core defines a renderer adapter contract for map events, coordinate conversion, layer lifecycle, drawing preview, committed features, vertex handles, selection, and snapping visuals.
 - [x] **ADAPT-02**: Leaflet adapter implements drawing, committed features, vertex handles, selection, dragging, and style overrides using Leaflet APIs.
-- [ ] **ADAPT-03**: MapLibre adapter implements drawing, committed features, vertex handles, selection, dragging, and style overrides using MapLibre APIs.
+- [x] **ADAPT-03**: MapLibre adapter implements drawing, committed features, vertex handles, selection, dragging, and style overrides using MapLibre APIs.
 - [ ] **ADAPT-04**: Core behavior can be tested with a fake adapter without requiring a real map renderer.
 
 ### Examples and Documentation
@@ -214,12 +214,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IO-04 | Phase 3 | Complete |
 | IO-05 | Phase 3 | Complete |
 | IO-06 | Phase 3 | Complete |
-| ADAPT-03 | Phase 4 | Pending |
-| API-06 | Phase 4 | Pending |
-| EVT-01 | Phase 4 | Pending |
-| EVT-02 | Phase 4 | Pending |
-| STYLE-01 | Phase 4 | Pending |
-| STYLE-02 | Phase 4 | Pending |
+| ADAPT-03 | Phase 4 | Complete |
+| API-06 | Phase 4 | Complete |
+| EVT-01 | Phase 4 | Complete |
+| EVT-02 | Phase 4 | Complete |
+| STYLE-01 | Phase 4 | Complete |
+| STYLE-02 | Phase 4 | Complete |
 | EX-01 | Phase 5 | Pending |
 | EX-02 | Phase 5 | Pending |
 | EX-03 | Phase 5 | Pending |

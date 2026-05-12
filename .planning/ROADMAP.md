@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Headless Core Foundation** - Typed packages, primitive store, feature links, adapter contract, and import/export core. (completed 2026-05-12)
 - [x] **Phase 2: Leaflet Editing MVP** - First visible end-to-end drawing and editing experience through the Leaflet adapter. (completed 2026-05-12)
 - [x] **Phase 3: Topology, Relations, and Validation** - Shared nodes/walls, relation primitives, robust validation, and import/edit/export round trips. (completed 2026-05-12)
-- [ ] **Phase 4: MapLibre Parity and Host Integration** - MapLibre adapter, complete event surface, style overrides, and configurable behavior.
+- [x] **Phase 4: MapLibre Parity and Host Integration** - MapLibre adapter, complete event surface, style overrides, and configurable behavior. (completed 2026-05-12)
 - [ ] **Phase 5: Examples, Docs, and Release Readiness** - Vanilla examples and documentation that make the SDK usable by host apps.
 
 ## Phase Details
@@ -91,9 +91,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: MapLibre source/layer rendering and pointer interaction model
-- [ ] 04-02: MapLibre drawing/editing parity and topology integration
-- [ ] 04-03: Events, style overrides, and editor configuration completion
+- [x] 04-01: MapLibre source/layer rendering and pointer interaction model
+- [x] 04-02: MapLibre drawing/editing parity and topology integration
+- [x] 04-03: Events, style overrides, and editor configuration completion
 
 ### Phase 5: Examples, Docs, and Release Readiness
 **Goal**: Developers can learn and verify the SDK through vanilla Leaflet and MapLibre examples plus documentation that clearly separates SDK responsibilities from host app responsibilities.
@@ -122,5 +122,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Headless Core Foundation | 4/4 | Complete | 2026-05-12 |
 | 2. Leaflet Editing MVP | 4/4 | Complete | 2026-05-12 |
 | 3. Topology, Relations, and Validation | 4/4 | Complete    | 2026-05-12 |
-| 4. MapLibre Parity and Host Integration | 0/3 | Not started | - |
+| 4. MapLibre Parity and Host Integration | 3/3 | Complete | 2026-05-12 |
 | 5. Examples, Docs, and Release Readiness | 0/2 | Not started | - |
