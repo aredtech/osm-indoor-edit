@@ -61,9 +61,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Shared Nodes and Snapping
 
-- [ ] **SNAP-01**: User can snap a new vertex to a nearby existing node when snapping is enabled.
-- [ ] **SNAP-02**: User can snap a new vertex to an existing edge and reuse or create shared boundary nodes as needed.
-- [ ] **SNAP-03**: Adjacent rooms can intentionally share wall nodes.
+- [x] **SNAP-01**: User can snap a new vertex to a nearby existing node when snapping is enabled.
+- [x] **SNAP-02**: User can snap a new vertex to an existing edge and reuse or create shared boundary nodes as needed.
+- [x] **SNAP-03**: Adjacent rooms can intentionally share wall nodes.
 - [ ] **SNAP-04**: When a shared node moves, all connected ways update consistently.
 - [ ] **SNAP-05**: Export avoids duplicating nodes when features intentionally share geometry.
 
@@ -195,9 +195,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INDOOR-04 | Phase 2 | Complete |
 | INDOOR-05 | Phase 2 | Complete |
 | ADAPT-02 | Phase 2 | Complete |
-| SNAP-01 | Phase 3 | Pending |
-| SNAP-02 | Phase 3 | Pending |
-| SNAP-03 | Phase 3 | Pending |
+| SNAP-01 | Phase 3 | Complete |
+| SNAP-02 | Phase 3 | Complete |
+| SNAP-03 | Phase 3 | Complete |
 | SNAP-04 | Phase 3 | Pending |
 | SNAP-05 | Phase 3 | Pending |
 | REL-01 | Phase 3 | Pending |

@@ -72,7 +72,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: Spatial index, node snapping, edge snapping, and shared-wall creation
+- [x] 03-01: Spatial index, node snapping, edge snapping, and shared-wall creation
 - [ ] 03-02: Shared-node mutation semantics and imported editable feature rebuilding
 - [ ] 03-03: Relation primitive support and minimal relation editing API
 - [ ] 03-04: Built-in and pluggable validation rules
