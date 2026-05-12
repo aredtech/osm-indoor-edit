@@ -1,0 +1,10 @@
+{
+  "name": "@osminedit-lib/example-leaflet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@osminedit-lib/core": "workspace:*",
+    "@osminedit-lib/leaflet": "workspace:*"
+  }
+}

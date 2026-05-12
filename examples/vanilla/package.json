@@ -1,0 +1,9 @@
+{
+  "name": "@osminedit-lib/example-vanilla",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@osminedit-lib/core": "workspace:*"
+  }
+}
