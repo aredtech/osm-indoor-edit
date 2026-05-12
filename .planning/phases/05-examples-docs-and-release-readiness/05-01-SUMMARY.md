@@ -96,9 +96,17 @@ completed: 2026-05-12T16:46:26Z
 - **Verification:** `pnpm test`
 - **Committed in:** `e58d018`
 
+**3. Composite build package metadata for shared example utilities**
+- **Found during:** Post-wave gate
+- **Issue:** `pnpm build` could not resolve `@osminedit-lib/example-vanilla` from referenced example projects.
+- **Fix:** Added `main` and `types` entries pointing at the generated `dist` output.
+- **Files modified:** `examples/vanilla/package.json`
+- **Verification:** `pnpm build`
+- **Committed in:** follow-up fix commit
+
 ---
 
-**Total deviations:** 2 auto-fixed
+**Total deviations:** 3 auto-fixed
 **Impact on plan:** Both fixes were required for repo-wide verification and did not expand Phase 05 scope.
 
 ## Issues Encountered
