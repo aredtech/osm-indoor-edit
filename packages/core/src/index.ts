@@ -18,4 +18,4 @@ export * from "./topology";
 export * from "./types";
 export * from "./validation";
 
-export const version = "0.1.0";
+export const version = "0.1.1";
