@@ -48,6 +48,41 @@ describe("preset catalog", () => {
     expect(catalog.getPresetGeometryOptions("shop-motorcycle")).toEqual(["point", "polygon"]);
   });
 
+  it("covers OsmInEdit top-level preset groups from the category browser", () => {
+    const catalog = createPresetCatalog();
+
+    const topLevelGroups = new Set(catalog.listPresets().map((preset) => preset.groupPath[0]));
+
+    expect(topLevelGroups).toEqual(
+      expect.arrayContaining([
+        "Building structure",
+        "Furniture",
+        "Barriers",
+        "Transport",
+        "Facilities",
+        "Sports",
+        "Man Made",
+        "Shops",
+        "Offices",
+        "Craft"
+      ])
+    );
+  });
+
+  it("supports nested browse paths for category-style preset menus", () => {
+    const catalog = createPresetCatalog();
+
+    expect(catalog.browsePresets(["Shops", "Vehicles"]).map((preset) => preset.id)).toEqual(
+      expect.arrayContaining(["shop-motorcycle"])
+    );
+    expect(catalog.browsePresets(["Transport", "Rail"]).map((preset) => preset.id)).toEqual(
+      expect.arrayContaining(["transport-platform"])
+    );
+    expect(catalog.browsePresets(["Craft"]).map((preset) => preset.id)).toEqual(
+      expect.arrayContaining(["craft-electrician"])
+    );
+  });
+
   it("overrides built-in presets by id", () => {
     const catalog = createPresetCatalog({
       overrides: [
