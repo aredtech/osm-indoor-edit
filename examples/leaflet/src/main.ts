@@ -2,9 +2,13 @@ import "leaflet/dist/leaflet.css";
 import "./styles.css";
 import * as L from "leaflet";
 import {
+  buildPresetTags,
   createEditor,
   type EditorEventName,
   type FeatureRecord,
+  type PresetDefinition,
+  type PresetField,
+  type PresetGeometryType,
   type ValidationResult
 } from "@aredtech/osm-indoor-edit";
 import { createLeafletAdapter } from "@aredtech/osm-indoor-edit-leaflet";
@@ -48,10 +52,24 @@ app.innerHTML = `
       </select>
     </label>
     <label class="field">
-      <span>Name</span>
+      <span>Selected name</span>
       <input data-role="name" placeholder="Feature name" />
     </label>
     <button data-action="apply-name">Apply name</button>
+    <section class="preset-section" aria-label="Preset">
+      <div class="section-title">Preset</div>
+      <label class="field">
+        <span>Feature preset</span>
+        <select data-role="preset"></select>
+      </label>
+      <label class="field">
+        <span>Geometry</span>
+        <select data-role="preset-geometry"></select>
+      </label>
+      <button data-action="draw-preset">Draw preset</button>
+      <div class="preset-fields" data-role="preset-fields"></div>
+      <button data-action="apply-fields">Apply fields</button>
+    </section>
     <p class="status" data-role="status">Level 0 ready</p>
     <ol class="event-log" data-role="events" aria-label="Recent events"></ol>
   </section>
@@ -62,7 +80,7 @@ app.innerHTML = `
   </aside>
   <aside class="export-panel" aria-label="Export JSON">
     <h1 data-role="export-heading">Export JSON</h1>
-    <p data-role="empty-copy">Draw a room, corridor, or POI to populate export JSON.</p>
+    <p data-role="empty-copy">Draw a room, corridor, POI, or preset feature to populate export JSON.</p>
     <pre data-role="export" tabindex="0"></pre>
   </aside>
 `;
@@ -88,6 +106,8 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 let selectedFeatureId: string | null = null;
 let latestFeature: FeatureRecord | null = null;
+let selectedPresetId = "shop-motorcycle";
+let selectedGeometry: PresetGeometryType = "polygon";
 const emptyExport = { elements: [], status: true as const };
 const recentEvents: string[] = [];
 
@@ -98,6 +118,9 @@ const exportOutput = document.querySelector<HTMLElement>('[data-role="export"]')
 const levelSelect = document.querySelector<HTMLSelectElement>('[data-role="level"]');
 const nameInput = document.querySelector<HTMLInputElement>('[data-role="name"]');
 const snappingInput = document.querySelector<HTMLInputElement>('[data-role="snapping"]');
+const presetSelect = document.querySelector<HTMLSelectElement>('[data-role="preset"]');
+const geometrySelect = document.querySelector<HTMLSelectElement>('[data-role="preset-geometry"]');
+const presetFields = document.querySelector<HTMLElement>('[data-role="preset-fields"]');
 const validationSummary = document.querySelector<HTMLElement>('[data-role="validation-summary"]');
 const validationIssues = document.querySelector<HTMLElement>('[data-role="validation-issues"]');
 const eventLog = document.querySelector<HTMLElement>('[data-role="events"]');
@@ -110,6 +133,12 @@ const editor = createEditor({
   snapping: snappingInput?.checked ?? false
 });
 adapter.setLevel("0");
+
+const geometryLabels: Record<PresetGeometryType, string> = {
+  point: "Point",
+  line: "Line",
+  polygon: "Area"
+};
 
 function setStatus(message: string): void {
   if (status) {
@@ -154,6 +183,76 @@ function renderEvents(): void {
     return;
   }
   eventLog.innerHTML = recentEvents.map((entry) => `<li>${entry}</li>`).join("");
+}
+
+function selectedPreset(): PresetDefinition {
+  const preset = editor.getPresetCatalog().getPreset(selectedPresetId);
+  if (!preset) {
+    throw new Error("Choose a preset before starting custom draw.");
+  }
+  return preset;
+}
+
+function renderPresetControls(): void {
+  const catalog = editor.getPresetCatalog();
+  const presets = catalog.listPresets().filter((preset) => preset.role === "functional");
+  if (presetSelect) {
+    presetSelect.innerHTML = presets
+      .map((preset) => `<option value="${preset.id}">${preset.name}</option>`)
+      .join("");
+    presetSelect.value = selectedPresetId;
+  }
+
+  const geometries = catalog.getPresetGeometryOptions(selectedPresetId);
+  if (!geometries.includes(selectedGeometry)) {
+    selectedGeometry = geometries[0] ?? "point";
+  }
+  if (geometrySelect) {
+    geometrySelect.innerHTML = geometries
+      .map((geometry) => `<option value="${geometry}">${geometryLabels[geometry]}</option>`)
+      .join("");
+    geometrySelect.value = selectedGeometry;
+  }
+  renderPresetFields(selectedPreset());
+}
+
+function renderPresetFields(preset: PresetDefinition): void {
+  if (!presetFields) {
+    return;
+  }
+  const tags = latestFeature?.tags ?? {};
+  presetFields.innerHTML = preset.fields.map((field) => renderPresetField(field, tags[field.key ?? ""] ?? "")).join("");
+}
+
+function renderPresetField(field: PresetField, value: string): string {
+  const name = `preset-field-${field.id}`;
+  const data = `data-preset-field="${field.id}"`;
+  const common = `id="${name}" ${data}`;
+  if (field.type === "textarea") {
+    return `<label class="field preset-field"><span>${field.label}</span><textarea ${common}>${value}</textarea></label>`;
+  }
+  if (field.type === "combo" && field.options?.length) {
+    const options = [
+      '<option value=""></option>',
+      ...field.options.map((option) => `<option value="${option.value}">${option.label ?? option.value}</option>`)
+    ].join("");
+    return `<label class="field preset-field"><span>${field.label}</span><select ${common}>${options}</select></label>`;
+  }
+  if (field.type === "check") {
+    return `<label class="field preset-field"><span>${field.label}</span><select ${common}><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select></label>`;
+  }
+  const inputType = field.type === "number" ? "number" : "text";
+  return `<label class="field preset-field"><span>${field.label}</span><input ${common} type="${inputType}" value="${value}" /></label>`;
+}
+
+function collectPresetFieldValues(): Record<string, string> {
+  const values: Record<string, string> = {};
+  presetFields?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("[data-preset-field]").forEach(
+    (field) => {
+      values[field.dataset.presetField ?? ""] = field.value;
+    }
+  );
+  return values;
 }
 
 function recordEvent(eventName: EditorEventName): void {
@@ -212,6 +311,20 @@ function runAction(action: string): void {
       latestFeature = editor.updateTags(selectedFeatureId, { name: nameInput.value });
       setStatus("Name updated");
     }
+    if (action === "draw-preset") {
+      const preset = selectedPreset();
+      editor.startDraw("custom", {
+        geometryType: selectedGeometry,
+        presetId: preset.id,
+        tags: buildPresetTags(preset)
+      });
+      setStatus(`Drawing ${preset.name} as ${geometryLabels[selectedGeometry]}`);
+    }
+    if (action === "apply-fields" && selectedFeatureId) {
+      latestFeature = editor.applyPresetFieldValues(selectedFeatureId, selectedPresetId, collectPresetFieldValues());
+      setStatus("Preset fields applied");
+      renderPresetControls();
+    }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : "Action failed");
   } finally {
@@ -224,6 +337,15 @@ document.addEventListener("click", (event) => {
   if (button) {
     runAction(button.dataset.action ?? "");
   }
+});
+
+presetSelect?.addEventListener("change", () => {
+  selectedPresetId = presetSelect.value;
+  renderPresetControls();
+});
+
+geometrySelect?.addEventListener("change", () => {
+  selectedGeometry = geometrySelect.value as PresetGeometryType;
 });
 
 levelSelect?.addEventListener("change", () => {
@@ -245,6 +367,10 @@ editor.on("featureSelected", (event) => {
   if (nameInput) {
     nameInput.value = latestFeature?.tags.name ?? "";
   }
+  if (latestFeature?.preset?.id) {
+    selectedPresetId = latestFeature.preset.id;
+  }
+  renderPresetControls();
 });
 
 editor.on("featureCreated", (event) => {
@@ -272,4 +398,5 @@ for (const eventName of trackedEvents) {
 editor.on("validationChanged", renderValidation);
 editor.on("error", (event) => setStatus(event.error.message));
 
+renderPresetControls();
 renderExport();

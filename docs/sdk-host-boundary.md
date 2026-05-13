@@ -10,6 +10,7 @@ The SDK is a headless indoor map editing library. It provides the editing behavi
 - Level-aware feature state and renderer filtering hooks.
 - Geometry editing operations such as move, insert, delete, detach, and shared-node updates.
 - Structured validation results with severity, rule id, message, and element metadata.
+- Built-in preset catalog data, preset search/browse/matching helpers, field schemas, sparse tag helpers, and preset geometry compatibility checks.
 - Typed events for ready state, tool changes, drawing, feature updates, validation, export readiness, and errors.
 - OsmInEdit-style JSON import and export.
 
@@ -19,8 +20,10 @@ The SDK is a headless indoor map editing library. It provides the editing behavi
 - Save/publish workflow, including whether validation warnings or errors block a save.
 - Backend API calls, persistence, project storage, user accounts, roles, and permissions.
 - Product navigation, notifications, analytics, collaboration, and audit logs.
-- Tag forms, presets, business rules, and any organization-specific validation policy.
+- Preset picker UI, geometry choice UI, form rendering, tag forms, business rules, and any organization-specific validation policy.
 - Application styling outside SDK-owned map editing visuals.
+
+Preset workflows keep the same boundary: the SDK can tell a host which presets exist, which geometries a preset supports, what fields should be rendered, and which tag diff to apply. The host decides how the preset picker looks, how form rendering works, where field values are stored before applying, and whether preset changes require review.
 
 ## Validation and export policy
 

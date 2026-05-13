@@ -94,6 +94,79 @@ editor.updateTags(selectedFeatureId, {
 });
 ```
 
+## Browse and search presets
+
+```ts
+import { createPresetCatalog } from "@aredtech/osm-indoor-edit";
+
+const catalog = createPresetCatalog();
+
+const indoorChoices = catalog.browsePresets(["Building structure"]);
+const motorcycleResults = catalog.searchPresets("motorcycle", { geometry: "polygon" });
+const motorcycle = catalog.getPreset("shop-motorcycle");
+const geometryChoices = catalog.getPresetGeometryOptions("shop-motorcycle");
+
+console.log(indoorChoices.length, motorcycleResults[0]?.name, motorcycle?.iconSvg, geometryChoices);
+```
+
+## Draw a preset-backed feature
+
+```ts
+import { buildPresetTags } from "@aredtech/osm-indoor-edit";
+
+const preset = editor.getPresetCatalog().getPreset("shop-motorcycle");
+if (!preset) {
+  throw new Error("Preset missing");
+}
+
+editor.startDraw("custom", {
+  geometryType: "polygon",
+  presetId: "shop-motorcycle",
+  tags: buildPresetTags(preset)
+});
+```
+
+## Render a host-owned preset form
+
+```ts
+const preset = editor.getPresetCatalog().getPreset("shop-motorcycle");
+
+for (const field of preset?.fields ?? []) {
+  // Host app renders its own input/select/textarea from the SDK field schema.
+  console.log(field.label, field.type, field.key, field.options);
+}
+```
+
+## Apply preset field values
+
+```ts
+const updated = editor.applyPresetFieldValues(feature.id, "shop-motorcycle", {
+  name: "Ared Bikes",
+  operator: "Ared",
+  second_hand: "only",
+  "service-motorcycle-sales": "yes"
+});
+
+console.log(updated.tags.shop); // motorcycle
+```
+
+## Match existing tags to presets
+
+```ts
+const matches = editor.matchFeaturePresets(feature.id);
+
+console.log(matches.structural[0]?.preset.id);
+console.log(matches.functional[0]?.preset.id);
+```
+
+## Change a feature preset
+
+```ts
+const changed = editor.changeFeaturePreset(feature.id, "amenity-cafe");
+
+console.log(changed.tags.amenity); // cafe
+```
+
 ## Validate
 
 ```ts

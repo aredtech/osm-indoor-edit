@@ -43,7 +43,7 @@ test("MapLibre example exposes host controls and export status", async ({ page }
   await page.mouse.click(box.x + box.width * 0.56, box.y + box.height * 0.5);
   await page.mouse.click(box.x + box.width * 0.53, box.y + box.height * 0.56);
   await page.getByRole("button", { name: "Finish" }).click();
-  await page.getByLabel("Name").fill("Ared Bikes");
+  await page.getByRole("textbox", { name: "Name", exact: true }).fill("Ared Bikes");
   await page.getByRole("button", { name: "Apply fields" }).click();
   await expect(page.getByLabel("Export JSON")).toContainText('"shop": "motorcycle"');
   await expect(page.getByLabel("Export JSON")).toContainText("Ared Bikes");

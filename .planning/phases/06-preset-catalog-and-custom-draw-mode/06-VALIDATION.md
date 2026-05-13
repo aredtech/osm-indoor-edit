@@ -1,7 +1,7 @@
 ---
 phase: 6
 slug: preset-catalog-and-custom-draw-mode
-status: draft
+status: passed
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-13
@@ -38,13 +38,13 @@ created: 2026-05-13
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 06-01-01 | 01 | 1 | PRESET-01 | T-06-01 | N/A | unit | `pnpm test -- --run packages/core/test/presets.test.ts` | ✅ | ⬜ pending |
-| 06-01-02 | 01 | 1 | PRESET-02 | T-06-02 | N/A | unit | `pnpm test -- --run packages/core/test/presets.test.ts` | ✅ | ⬜ pending |
-| 06-01-03 | 01 | 1 | PRESET-05 | T-06-03 | N/A | unit | `pnpm test -- --run packages/core/test/presets.test.ts` | ✅ | ⬜ pending |
-| 06-02-01 | 02 | 2 | CUSTOM-01 | T-06-04 | N/A | unit | `pnpm test -- --run packages/core/test/editor-drawing.test.ts packages/core/test/presets.test.ts` | ✅ | ⬜ pending |
-| 06-02-02 | 02 | 2 | CUSTOM-02 | T-06-05 | N/A | unit | `pnpm test -- --run packages/core/test/editor-drawing.test.ts packages/core/test/import-export.test.ts` | ✅ | ⬜ pending |
-| 06-03-01 | 03 | 3 | PRESET-03 | T-06-06 | N/A | unit + docs | `pnpm test -- --run packages/core/test/presets.test.ts && pnpm build` | ✅ | ⬜ pending |
-| 06-03-02 | 03 | 3 | PRESET-04 | T-06-07 | N/A | e2e | `pnpm build:examples && pnpm test:e2e` | ✅ | ⬜ pending |
+| 06-01-01 | 01 | 1 | PRESET-01 | T-06-01 | N/A | unit | `pnpm test -- --run packages/core/test/presets.test.ts` | ✅ | ✅ green |
+| 06-01-02 | 01 | 1 | PRESET-02 | T-06-02 | N/A | unit | `pnpm test -- --run packages/core/test/presets.test.ts` | ✅ | ✅ green |
+| 06-01-03 | 01 | 1 | PRESET-05 | T-06-03 | N/A | unit | `pnpm test -- --run packages/core/test/presets.test.ts` | ✅ | ✅ green |
+| 06-02-01 | 02 | 2 | CUSTOM-01 | T-06-04 | N/A | unit | `pnpm test -- --run packages/core/test/editor-drawing.test.ts packages/core/test/presets.test.ts` | ✅ | ✅ green |
+| 06-02-02 | 02 | 2 | CUSTOM-02 | T-06-05 | N/A | unit | `pnpm test -- --run packages/core/test/editor-drawing.test.ts packages/core/test/import-export.test.ts` | ✅ | ✅ green |
+| 06-03-01 | 03 | 3 | PRESET-03 | T-06-06 | N/A | unit + docs | `pnpm test -- --run packages/core/test/presets.test.ts && pnpm build` | ✅ | ✅ green |
+| 06-03-02 | 03 | 3 | PRESET-04 | T-06-07 | N/A | e2e | `pnpm build:examples && pnpm test:e2e` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -77,4 +77,4 @@ Existing infrastructure covers all phase requirements:
 - [x] Feedback latency target is under 120 seconds for full-suite feedback.
 - [x] `nyquist_compliant: true` set in frontmatter.
 
-**Approval:** pending
+Approval: passed 2026-05-13

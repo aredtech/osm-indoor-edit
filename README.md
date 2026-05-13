@@ -4,7 +4,7 @@ Headless TypeScript editing behavior for OsmInEdit-style indoor maps. Host apps 
 
 ## What it is
 
-Osm Indoor Editing Library is a frontend SDK for applications that need indoor map editing behavior without adopting a fixed editor app. It lets a host application draw and edit rooms, corridors, POIs, shared geometry, levels, tags, and OSM-like primitives in Leaflet or MapLibre.
+Osm Indoor Editing Library is a frontend SDK for applications that need indoor map editing behavior without adopting a fixed editor app. It lets a host application draw and edit rooms, corridors, POIs, shared geometry, levels, tags, OSM-like primitives, preset catalog workflows, and custom preset-backed features in Leaflet or MapLibre.
 
 The primary v1 interchange format is OsmInEdit-style JSON:
 
@@ -17,7 +17,7 @@ The primary v1 interchange format is OsmInEdit-style JSON:
 
 ## Packages
 
-- `@aredtech/osm-indoor-edit` - renderer-neutral editor state, drawing/editing APIs, import/export, validation, events, and adapter contracts.
+- `@aredtech/osm-indoor-edit` - renderer-neutral editor state, drawing/editing APIs, preset catalog helpers, import/export, validation, events, and adapter contracts.
 - `@aredtech/osm-indoor-edit-leaflet` - Leaflet adapter for SDK-owned map editing visuals and pointer behavior.
 - `@aredtech/osm-indoor-edit-maplibre` - MapLibre adapter for SDK-owned sources/layers, editing visuals, and pointer behavior.
 
@@ -51,7 +51,7 @@ See [docs/sdk-host-boundary.md](docs/sdk-host-boundary.md) for the full boundary
 ## Documentation
 
 - [SDK and host responsibilities](docs/sdk-host-boundary.md)
-- [API recipes](docs/api-recipes.md) for `createEditor`, drawing, tags, validation, load/export, events, snapping, defaults, and `idStrategy`
+- [API recipes](docs/api-recipes.md) for `createEditor`, drawing, preset catalog search, custom draw mode, host-rendered preset forms, tags, validation, load/export, events, snapping, defaults, and `idStrategy`
 - [Release readiness](docs/release.md)
 - [Seed PRD](docs/osm-indoor-prd.md)
 
