@@ -11,6 +11,7 @@ export * from "./import-export";
 export * from "./ids";
 export * from "./levels";
 export * from "./primitive-store";
+export * from "./presets";
 export * from "./relations";
 export * from "./snapping";
 export * from "./topology";
