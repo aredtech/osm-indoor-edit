@@ -40,6 +40,8 @@ pnpm dev:maplibre
 
 The examples are host-owned UI examples. Their buttons, forms, validation panel, export panel, level selector, snapping toggle, and sample loader live in `examples/*`; the SDK owns the map editing behavior and map editing visuals.
 
+The preset examples also show how to build an OsmInEdit-style category browser from the headless catalog. The SDK provides curated groups such as Building structure, Furniture, Barriers, Transport, Facilities, Sports, Man Made, Shops, Offices, and Craft; the host decides how those groups and fields appear in the UI.
+
 ## SDK owns vs host owns
 
 SDK owns map editing behavior: draw modes, map click capture, temporary geometry, committed editing visuals, vertex handles, snap indicators, primitive synchronization, validation results, events, and OsmInEdit-style import/export.

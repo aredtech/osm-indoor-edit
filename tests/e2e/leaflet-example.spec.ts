@@ -13,8 +13,8 @@ test("Leaflet example exposes host controls and export status", async ({ page })
   await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Load sample" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Validate" })).toBeVisible();
-  await expect(page.getByLabel("Category")).toBeVisible();
-  await expect(page.getByLabel("Subcategory")).toBeVisible();
+  await expect(page.getByText("Category", { exact: true })).toBeVisible();
+  await expect(page.getByText("Subcategory", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Feature preset")).toBeVisible();
   await expect(page.getByLabel("Geometry")).toBeVisible();
   await expect(page.getByRole("button", { name: "Draw preset" })).toBeVisible();
@@ -35,8 +35,8 @@ test("Leaflet example exposes host controls and export status", async ({ page })
   await page.getByRole("button", { name: "Validate" }).click();
   await expect(page.getByLabel("Validation issues")).toContainText("total");
 
-  await page.getByLabel("Category").selectOption("Shops");
-  await page.getByLabel("Subcategory").selectOption("Vehicles");
+  await page.locator('[data-role="preset-category"]').selectOption("Shops");
+  await page.locator('[data-role="preset-subcategory"]').selectOption("Vehicles");
   await page.getByLabel("Feature preset").selectOption("shop-motorcycle");
   await page.getByLabel("Geometry").selectOption("polygon");
   await page.getByRole("button", { name: "Draw preset" }).click();

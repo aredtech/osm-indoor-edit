@@ -102,12 +102,17 @@ import { createPresetCatalog } from "@aredtech/osm-indoor-edit";
 const catalog = createPresetCatalog();
 
 const indoorChoices = catalog.browsePresets(["Building structure"]);
+const shopChoices = catalog.browsePresets(["Shops"]);
+const vehicleShopChoices = catalog.browsePresets(["Shops", "Vehicles"]);
 const motorcycleResults = catalog.searchPresets("motorcycle", { geometry: "polygon" });
 const motorcycle = catalog.getPreset("shop-motorcycle");
 const geometryChoices = catalog.getPresetGeometryOptions("shop-motorcycle");
 
-console.log(indoorChoices.length, motorcycleResults[0]?.name, motorcycle?.iconSvg, geometryChoices);
+console.log(indoorChoices.length, shopChoices.length, vehicleShopChoices.length);
+console.log(motorcycleResults[0]?.name, motorcycle?.iconSvg, geometryChoices);
 ```
+
+The built-in catalog includes curated OsmInEdit-style top-level groups for `Building structure`, `Furniture`, `Barriers`, `Transport`, `Facilities`, `Sports`, `Man Made`, `Shops`, `Offices`, and `Craft`. Use `listPresets()` to derive category menus, then pass the selected `groupPath` into `browsePresets()`.
 
 ## Draw a preset-backed feature
 

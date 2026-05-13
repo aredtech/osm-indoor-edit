@@ -60,6 +60,14 @@ app.innerHTML = `
     <section class="preset-section" aria-label="Preset">
       <div class="section-title">Preset</div>
       <label class="field">
+        <span>Category</span>
+        <select data-role="preset-category"></select>
+      </label>
+      <label class="field">
+        <span>Subcategory</span>
+        <select data-role="preset-subcategory"></select>
+      </label>
+      <label class="field">
         <span>Feature preset</span>
         <select data-role="preset"></select>
       </label>
@@ -115,6 +123,8 @@ let editor: IndoorEditor | null = null;
 let selectedFeatureId: string | null = null;
 let latestFeature: FeatureRecord | null = null;
 let selectedPresetId = "shop-motorcycle";
+let selectedCategory = "Shops";
+let selectedSubcategory = "Vehicles";
 let selectedGeometry: PresetGeometryType = "polygon";
 const emptyExport = { elements: [], status: true as const };
 const recentEvents: string[] = [];
@@ -126,6 +136,8 @@ const exportOutput = document.querySelector<HTMLElement>('[data-role="export"]')
 const levelSelect = document.querySelector<HTMLSelectElement>('[data-role="level"]');
 const nameInput = document.querySelector<HTMLInputElement>('[data-role="name"]');
 const snappingInput = document.querySelector<HTMLInputElement>('[data-role="snapping"]');
+const categorySelect = document.querySelector<HTMLSelectElement>('[data-role="preset-category"]');
+const subcategorySelect = document.querySelector<HTMLSelectElement>('[data-role="preset-subcategory"]');
 const presetSelect = document.querySelector<HTMLSelectElement>('[data-role="preset"]');
 const geometrySelect = document.querySelector<HTMLSelectElement>('[data-role="preset-geometry"]');
 const presetFields = document.querySelector<HTMLElement>('[data-role="preset-fields"]');
@@ -206,7 +218,37 @@ function renderPresetControls(): void {
     return;
   }
   const catalog = activeEditor.getPresetCatalog();
-  const presets = catalog.listPresets().filter((preset) => preset.role === "functional");
+  const allPresets = catalog.listPresets();
+  const categories = [...new Set(allPresets.map((preset) => preset.groupPath[0]).filter(Boolean))].sort();
+  if (categorySelect) {
+    categorySelect.innerHTML = categories.map((category) => `<option value="${category}">${category}</option>`).join("");
+    categorySelect.value = selectedCategory;
+  }
+
+  const subcategories = [
+    "All",
+    ...new Set(
+      allPresets
+        .filter((preset) => preset.groupPath[0] === selectedCategory)
+        .map((preset) => preset.groupPath[1])
+        .filter((subcategory): subcategory is string => Boolean(subcategory))
+    )
+  ];
+  if (!subcategories.includes(selectedSubcategory)) {
+    selectedSubcategory = "All";
+  }
+  if (subcategorySelect) {
+    subcategorySelect.innerHTML = subcategories
+      .map((subcategory) => `<option value="${subcategory}">${subcategory}</option>`)
+      .join("");
+    subcategorySelect.value = selectedSubcategory;
+  }
+
+  const browsePath = selectedSubcategory === "All" ? [selectedCategory] : [selectedCategory, selectedSubcategory];
+  const presets = catalog.browsePresets(browsePath);
+  if (!presets.some((preset) => preset.id === selectedPresetId)) {
+    selectedPresetId = presets[0]?.id ?? selectedPresetId;
+  }
   if (presetSelect) {
     presetSelect.innerHTML = presets
       .map((preset) => `<option value="${preset.id}">${preset.name}</option>`)
@@ -352,6 +394,20 @@ document.addEventListener("click", (event) => {
 
 presetSelect?.addEventListener("change", () => {
   selectedPresetId = presetSelect.value;
+  const preset = requireEditor().getPresetCatalog().getPreset(selectedPresetId);
+  selectedCategory = preset?.groupPath[0] ?? selectedCategory;
+  selectedSubcategory = preset?.groupPath[1] ?? "All";
+  renderPresetControls();
+});
+
+categorySelect?.addEventListener("change", () => {
+  selectedCategory = categorySelect.value;
+  selectedSubcategory = "All";
+  renderPresetControls();
+});
+
+subcategorySelect?.addEventListener("change", () => {
+  selectedSubcategory = subcategorySelect.value;
   renderPresetControls();
 });
 
@@ -391,6 +447,9 @@ function initializeEditor(): void {
     }
     if (latestFeature?.preset?.id) {
       selectedPresetId = latestFeature.preset.id;
+      const preset = editor?.getPresetCatalog().getPreset(selectedPresetId);
+      selectedCategory = preset?.groupPath[0] ?? selectedCategory;
+      selectedSubcategory = preset?.groupPath[1] ?? "All";
     }
     renderPresetControls();
   });

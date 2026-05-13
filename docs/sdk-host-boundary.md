@@ -23,7 +23,7 @@ The SDK is a headless indoor map editing library. It provides the editing behavi
 - Preset picker UI, geometry choice UI, form rendering, tag forms, business rules, and any organization-specific validation policy.
 - Application styling outside SDK-owned map editing visuals.
 
-Preset workflows keep the same boundary: the SDK can tell a host which presets exist, which geometries a preset supports, what fields should be rendered, and which tag diff to apply. The host decides how the preset picker looks, how form rendering works, where field values are stored before applying, and whether preset changes require review.
+Preset workflows keep the same boundary: the SDK can tell a host which presets exist, how they are grouped, which geometries a preset supports, what fields should be rendered, and which tag diff to apply. The host decides how the category browser or preset picker looks, how form rendering works, where field values are stored before applying, and whether preset changes require review.
 
 ## Validation and export policy
 
