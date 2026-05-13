@@ -128,7 +128,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 06-01: Preset catalog model, built-in data, and search/matching helpers
+- [x] 06-01: Preset catalog model, built-in data, and search/matching helpers
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 06-02: Custom draw mode and preset-backed feature creation
@@ -148,4 +148,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Topology, Relations, and Validation | 4/4 | Complete    | 2026-05-12 |
 | 4. MapLibre Parity and Host Integration | 3/3 | Complete | 2026-05-12 |
 | 5. Examples, Docs, and Release Readiness | 2/2 | Complete | 2026-05-12 |
-| 6. Preset Catalog and Custom Draw Mode | 0/3 | Pending | - |
+| 6. Preset Catalog and Custom Draw Mode | 1/3 | In Progress|  |
