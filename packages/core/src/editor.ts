@@ -144,6 +144,9 @@ class HeadlessIndoorEditor implements IndoorEditor {
             this.moveVertex(event.featureId, event.vertexIndex, event.coordinate)
           )
         ),
+        this.adapter.on("draftVertexDrag", (event) =>
+          this.runAdapterMutation(() => this.moveDraftVertex(event.vertexIndex, event.coordinate))
+        ),
         this.adapter.on("midpointClick", (event) =>
           this.runAdapterMutation(() =>
             this.insertVertex(event.featureId, event.edgeIndex, event.coordinate)
@@ -541,6 +544,26 @@ class HeadlessIndoorEditor implements IndoorEditor {
     if (geometry) {
       this.adapter?.showTemporaryFeature("draft", geometry);
     }
+  }
+
+  private moveDraftVertex(vertexIndex: number, coordinate: Coordinate): void {
+    if (!this.draft) {
+      return;
+    }
+
+    if (vertexIndex < 0 || vertexIndex >= this.draft.coordinates.length) {
+      throw new VertexEditError(`Draft vertex ${vertexIndex} does not exist`);
+    }
+
+    this.draft.coordinates[vertexIndex] = coordinate;
+    if (this.draft.nodeIds) {
+      this.draft.nodeIds[vertexIndex] = undefined;
+    }
+    const geometry = buildTemporaryGeometry(this.draft);
+    if (geometry) {
+      this.adapter?.showTemporaryFeature("draft", geometry);
+    }
+    this.events.emit("drawingUpdated", { pointCount: this.draft.coordinates.length });
   }
 
   private enqueueReadyEvent(): void {

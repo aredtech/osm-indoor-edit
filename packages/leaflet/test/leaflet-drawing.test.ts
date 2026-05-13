@@ -46,6 +46,24 @@ describe("Leaflet drawing visuals", () => {
     expect(adapter.getTemporaryLayerCount("draft")).toBe(3);
   });
 
+  it("emits draftVertexDrag from draft vertex mouse drag gestures", () => {
+    const { adapter, editor, map } = createLeafletDrawingEditor();
+    const seen: Array<{ index: number; lat: number; lon: number }> = [];
+    adapter.on("draftVertexDrag", (event) =>
+      seen.push({
+        index: event.vertexIndex,
+        lat: event.coordinate.lat,
+        lon: event.coordinate.lon
+      })
+    );
+
+    editor.startDraw("room");
+    clickMap(map, 1, 2);
+    adapter.fireDraftVertexHandleDrag(0, { lat: 10, lon: 20 });
+
+    expect(seen).toEqual([{ index: 0, lat: 10, lon: 20 }]);
+  });
+
   it("clearTemporaryFeature removes one draft layer", () => {
     const { adapter } = createLeafletDrawingEditor();
 

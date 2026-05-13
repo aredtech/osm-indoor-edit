@@ -31,6 +31,10 @@ interface ActiveVertexDrag {
   vertexIndex: number;
 }
 
+interface ActiveDraftVertexDrag {
+  vertexIndex: number;
+}
+
 interface EditingGroups {
   root: L.LayerGroup;
   draft: L.LayerGroup;
@@ -57,6 +61,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
   private currentLevel: string | undefined;
   private selectedFeatureId: string | null = null;
   private activeVertexDrag: ActiveVertexDrag | undefined;
+  private activeDraftVertexDrag: ActiveDraftVertexDrag | undefined;
 
   constructor(options: LeafletAdapterOptions = {}) {
     this.paneName = options.paneName ?? "osminedit-editing";
@@ -110,6 +115,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
     this.handleLayers.clear();
     this.currentLevel = undefined;
     this.activeVertexDrag = undefined;
+    this.activeDraftVertexDrag = undefined;
     this.groups?.root.removeFrom(this.map);
     this.groups = undefined;
     this.map = undefined;
@@ -386,6 +392,31 @@ export class LeafletRendererAdapter implements RendererAdapter {
     });
   }
 
+  fireDraftVertexHandleDrag(vertexIndex: number, coordinate: Coordinate): void {
+    const layer = this.temporaryLayers.get("draft");
+    if (!(layer instanceof L.LayerGroup)) {
+      return;
+    }
+
+    const draftVertexMarkers = layer
+      .getLayers()
+      .filter((candidate): candidate is L.CircleMarker => candidate instanceof L.CircleMarker);
+    const marker = draftVertexMarkers[vertexIndex];
+    if (!marker) {
+      return;
+    }
+
+    marker.fire("mousedown", { latlng: marker.getLatLng() });
+    this.requireMap().fire("mousemove", {
+      latlng: toLatLng(coordinate),
+      originalEvent: new MouseEvent("mousemove")
+    });
+    this.requireMap().fire("mouseup", {
+      latlng: toLatLng(coordinate),
+      originalEvent: new MouseEvent("mouseup")
+    });
+  }
+
   fireMidpointClick(featureId: string, edgeIndex: number, coordinate: Coordinate): void {
     const marker = this.handleLayers.get(featureId)?.midpoints[edgeIndex];
     marker?.fire("click", { latlng: toLatLng(coordinate) });
@@ -410,13 +441,18 @@ export class LeafletRendererAdapter implements RendererAdapter {
     const coordinates = geometry.coordinates.map(toLatLng);
     const group = L.layerGroup([], { pane: this.paneName });
 
-    for (const coordinate of coordinates) {
-      group.addLayer(
-        L.circleMarker(coordinate, {
-          ...this.styles.draftVertex,
-          pane: this.paneName
-        })
-      );
+    for (const [vertexIndex, coordinate] of coordinates.entries()) {
+      const marker = L.circleMarker(coordinate, {
+        ...this.styles.draftVertex,
+        pane: this.paneName
+      });
+      marker.on("mousedown", (event) => {
+        this.activeDraftVertexDrag = { vertexIndex };
+        this.map?.dragging.disable();
+        L.DomEvent.stop(event);
+      });
+      marker.on("click", (event) => L.DomEvent.stop(event));
+      group.addLayer(marker);
     }
 
     if (geometry.geometryType === "point") {
@@ -453,11 +489,20 @@ export class LeafletRendererAdapter implements RendererAdapter {
   }
 
   private handleVertexDragMapEvent(eventName: LeafletListener["eventName"], event: L.LeafletMouseEvent): void {
-    if (!this.activeVertexDrag) {
-      return;
+    if (this.activeDraftVertexDrag && eventName === "mousemove") {
+      this.emit("draftVertexDrag", {
+        vertexIndex: this.activeDraftVertexDrag.vertexIndex,
+        coordinate: fromLatLng(event.latlng),
+        originalEvent: event.originalEvent
+      });
     }
 
-    if (eventName === "mousemove") {
+    if (this.activeDraftVertexDrag && eventName === "mouseup") {
+      this.activeDraftVertexDrag = undefined;
+      this.map?.dragging.enable();
+    }
+
+    if (this.activeVertexDrag && eventName === "mousemove") {
       this.emit("vertexDrag", {
         featureId: this.activeVertexDrag.featureId,
         vertexIndex: this.activeVertexDrag.vertexIndex,
@@ -466,7 +511,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
       });
     }
 
-    if (eventName === "mouseup") {
+    if (this.activeVertexDrag && eventName === "mouseup") {
       this.activeVertexDrag = undefined;
       this.map?.dragging.enable();
     }

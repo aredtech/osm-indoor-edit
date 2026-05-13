@@ -119,6 +119,48 @@ describe("createMapLibreAdapter", () => {
     });
   });
 
+  it("configures the temporary preview layer as a dashed visible line", () => {
+    const map = new FakeMapLibreMap();
+    const adapter = createMapLibreAdapter();
+
+    adapter.attach(map);
+
+    expect(map.layers.get("osminedit-draft-preview-line")).toMatchObject({
+      type: "line",
+      source: "osminedit-draft",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: {
+        "line-color": "#2563EB",
+        "line-width": 2,
+        "line-opacity": 0.75,
+        "line-dasharray": [2, 3]
+      }
+    });
+  });
+
+  it("emits draftVertexDrag from draft vertex mouse drag gestures", () => {
+    const map = new FakeMapLibreMap();
+    const adapter = createMapLibreAdapter();
+    const seen: Array<{ index: number; lat: number; lon: number }> = [];
+    adapter.attach(map);
+    adapter.on("draftVertexDrag", (event) =>
+      seen.push({
+        index: event.vertexIndex,
+        lat: event.coordinate.lat,
+        lon: event.coordinate.lon
+      })
+    );
+
+    map.fireLayer("mousedown", "osminedit-draft-vertex", {
+      features: [{ properties: { vertexIndex: 0 } }],
+      lngLat: { lng: 2, lat: 1 }
+    });
+    map.fire("mousemove", { lngLat: { lng: 20, lat: 10 } });
+    map.fire("mouseup", { lngLat: { lng: 20, lat: 10 } });
+
+    expect(seen).toEqual([{ index: 0, lat: 10, lon: 20 }]);
+  });
+
   it("filters committed features by level and repeat_on", () => {
     const adapter = createAttachedAdapter();
     adapter.commitFeature({

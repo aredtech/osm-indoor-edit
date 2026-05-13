@@ -39,6 +39,11 @@ export interface RendererAdapterEventMap {
     coordinate: Coordinate;
     originalEvent?: unknown;
   };
+  draftVertexDrag: {
+    vertexIndex: number;
+    coordinate: Coordinate;
+    originalEvent?: unknown;
+  };
   midpointClick: {
     featureId: string;
     edgeIndex: number;

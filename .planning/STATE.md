@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Phase 5 complete
-last_updated: "2026-05-13T02:15:42.193Z"
-last_activity: 2026-05-13 -- Added draft preview and Leaflet vertex dragging
+last_updated: "2026-05-13T02:29:18.056Z"
+last_activity: 2026-05-13 -- Added draft vertex dragging and fixed MapLibre preview visibility
 progress:
   total_phases: 5
   completed_phases: 5
@@ -90,6 +90,7 @@ None yet.
 | 2026-05-12 | Add package READMEs and bump public packages to `0.1.0` | Complete |
 | 2026-05-12 | Fix Leaflet example map visibility | Complete |
 | 2026-05-13 | Add OsmInEdit-style draft preview and Leaflet vertex dragging | Complete |
+| 2026-05-13 | Add draft vertex dragging and fix MapLibre dashed preview visibility | Complete |
 
 ### Blockers/Concerns
 

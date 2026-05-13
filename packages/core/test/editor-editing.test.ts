@@ -110,6 +110,27 @@ describe("editor editing lifecycle", () => {
     });
   });
 
+  it("updates active draft coordinates when a draft vertex is dragged", () => {
+    const { adapter, editor } = createEditingEditor();
+    editor.startDraw("room");
+
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 3, lon: 4 } });
+    adapter.emit("draftVertexDrag", {
+      vertexIndex: 0,
+      coordinate: { lat: 10, lon: 20 }
+    });
+    adapter.emit("pointerDown", { coordinate: { lat: 5, lon: 6 } });
+
+    editor.finishDraw();
+
+    expect(editor.exportOsmInEdit().elements.slice(0, 3)).toMatchObject([
+      { type: "node", id: 1, lat: 10, lon: 20 },
+      { type: "node", id: 2, lat: 3, lon: 4 },
+      { type: "node", id: 3, lat: 5, lon: 6 }
+    ]);
+  });
+
   it("supports host API vertex delete", () => {
     const { editor, feature } = drawRoom(4);
 

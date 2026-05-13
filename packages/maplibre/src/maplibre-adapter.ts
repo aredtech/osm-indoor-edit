@@ -78,6 +78,7 @@ interface MapListener {
 
 type ActiveDrag =
   | { kind: "vertex"; featureId: string; vertexIndex: number }
+  | { kind: "draftVertex"; vertexIndex: number }
   | { kind: "feature"; featureId: string; from: Coordinate };
 
 export interface MapLibreAdapterOptions {
@@ -391,6 +392,16 @@ export class MapLibreRendererAdapter implements RendererAdapter {
       this.activeDrag = { kind: "vertex", featureId, vertexIndex };
       this.map?.dragPan?.disable();
     });
+
+    this.bindLayerEvent("mousedown", "draft-vertex", (event) => {
+      const properties = this.featurePropertiesFromEvent(event, [this.layerId("draft-vertex")]);
+      const vertexIndex = numberProperty(properties, "vertexIndex");
+      if (vertexIndex === undefined) {
+        return;
+      }
+      this.activeDrag = { kind: "draftVertex", vertexIndex };
+      this.map?.dragPan?.disable();
+    });
   }
 
   private bindLayerEvent(
@@ -415,6 +426,14 @@ export class MapLibreRendererAdapter implements RendererAdapter {
     if (this.activeDrag.kind === "vertex" && (eventName === "mousemove" || eventName === "mouseup")) {
       this.emit("vertexDrag", {
         featureId: this.activeDrag.featureId,
+        vertexIndex: this.activeDrag.vertexIndex,
+        coordinate,
+        originalEvent
+      });
+    }
+
+    if (this.activeDrag.kind === "draftVertex" && eventName === "mousemove") {
+      this.emit("draftVertexDrag", {
         vertexIndex: this.activeDrag.vertexIndex,
         coordinate,
         originalEvent

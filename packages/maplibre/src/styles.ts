@@ -50,6 +50,10 @@ export type MapLibreEditingStyleOverrides = DeepPartial<MapLibreEditingStyles>;
 
 export const DEFAULT_MAPLIBRE_EDITING_STYLES: MapLibreEditingStyles = {
   draftLine: {
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
     paint: {
       "line-color": "#2563EB",
       "line-width": 2,
