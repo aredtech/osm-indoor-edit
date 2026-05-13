@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: complete
-stopped_at: Phase 5 complete
-last_updated: "2026-05-13T03:09:56.300Z"
-last_activity: 2026-05-13 -- Fixed snapping initial state and nearest-node draw preview
+status: in-progress
+stopped_at: Phase 6 added to roadmap
+last_updated: "2026-05-13T03:47:55.300Z"
+last_activity: 2026-05-13 -- Added Phase 6 preset catalog and custom draw mode roadmap entry
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
-  total_plans: 17
+  total_plans: 20
   completed_plans: 17
-  percent: 100
+  percent: 85
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-12)
 
 **Core value:** Developers can add reliable indoor map editing behavior to a Leaflet or MapLibre frontend and export valid OsmInEdit-style node/way/relation JSON without building geometry editing themselves.
-**Current focus:** Phase 5 complete
+**Current focus:** Phase 6 ready for discussion
 
 ## Current Position
 
-Phase: 5 — COMPLETE
-Plan: 2 of 2
-Status: Phase 5 complete
-Last activity: 2026-05-12 -- Phase 5 validation and release dry-run passed
+Phase: 6 — PENDING
+Plan: 0 of 3
+Status: Phase 6 ready for discussion
+Last activity: 2026-05-13 -- Added Phase 6 preset catalog and custom draw mode roadmap entry
 
-Progress: [██████████] 100%
+Progress: [████████░░] 85%
 
 ## Performance Metrics
 
@@ -93,6 +93,7 @@ None yet.
 | 2026-05-13 | Add draft vertex dragging and fix MapLibre dashed preview visibility | Complete |
 | 2026-05-13 | Fix Leaflet continuous draft vertex dragging | Complete |
 | 2026-05-13 | Fix snapping initial state and nearest-node draw preview | Complete |
+| 2026-05-13 | Add Phase 6 preset catalog and custom draw mode roadmap entry | Complete |
 
 ### Blockers/Concerns
 

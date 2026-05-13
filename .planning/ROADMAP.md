@@ -2,7 +2,7 @@
 
 ## Overview
 
-The v1 journey builds the SDK from the inside out while preserving vertical usefulness. Phase 1 creates a typed headless core that can round-trip OsmInEdit-style primitives without a real map. Phase 2 makes that core visibly useful through Leaflet drawing and editing. Phase 3 hardens the OSM-like parts that make this more than a polygon tool: shared nodes, relations, validation, and round-trip editing. Phase 4 brings MapLibre to parity and completes style/event configurability. Phase 5 packages the experience with examples and documentation that prove the host app owns the UI.
+The v1 journey builds the SDK from the inside out while preserving vertical usefulness. Phase 1 creates a typed headless core that can round-trip OsmInEdit-style primitives without a real map. Phase 2 makes that core visibly useful through Leaflet drawing and editing. Phase 3 hardens the OSM-like parts that make this more than a polygon tool: shared nodes, relations, validation, and round-trip editing. Phase 4 brings MapLibre to parity and completes style/event configurability. Phase 5 packages the experience with examples and documentation that prove the host app owns the UI. Phase 6 starts the next layer of OsmInEdit parity by adding a headless preset catalog and custom preset-backed drawing flow without taking over host UI.
 
 ## Phases
 
@@ -17,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Topology, Relations, and Validation** - Shared nodes/walls, relation primitives, robust validation, and import/edit/export round trips. (completed 2026-05-12)
 - [x] **Phase 4: MapLibre Parity and Host Integration** - MapLibre adapter, complete event surface, style overrides, and configurable behavior. (completed 2026-05-12)
 - [x] **Phase 5: Examples, Docs, and Release Readiness** - Vanilla examples and documentation that make the SDK usable by host apps. (completed 2026-05-12)
+- [ ] **Phase 6: Preset Catalog and Custom Draw Mode** - OsmInEdit-style preset data, field schemas, search/matching helpers, and custom preset-backed drawing while the host owns picker/form UI.
 
 ## Phase Details
 
@@ -112,10 +113,28 @@ Plans:
 - [x] 05-01: Vanilla Leaflet and MapLibre examples
 - [x] 05-02: Documentation, release checks, and package readiness
 
+### Phase 6: Preset Catalog and Custom Draw Mode
+**Goal**: Host apps can query OsmInEdit-style presets, let users choose compatible point/line/area geometry, draw custom preset-backed features, and render their own forms from SDK-provided preset field schemas.
+**Mode:** mvp
+**Depends on**: Phase 5
+**Requirements**: [PRESET-01, PRESET-02, PRESET-03, PRESET-04, PRESET-05, CUSTOM-01, CUSTOM-02]
+**Success Criteria** (what must be TRUE):
+  1. Developer can list, browse, and search built-in indoor/common OSM presets without rendering SDK-owned UI.
+  2. Developer can inspect a preset's display metadata, hard tags, allowed geometry types, and form field schema.
+  3. Host apps can start custom drawing from a preset and selected geometry type without forcing the feature through room/corridor/POI-only APIs.
+  4. Finished custom features export OsmInEdit-style nodes/ways with preset tags and host-edited field tags.
+  5. Developers can match existing feature tags back to likely presets and update a feature when the selected preset changes.
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: Preset catalog model, built-in data, and search/matching helpers
+- [ ] 06-02: Custom draw mode and preset-backed feature creation
+- [ ] 06-03: Preset field schema APIs, docs, and examples
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -124,3 +143,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 3. Topology, Relations, and Validation | 4/4 | Complete    | 2026-05-12 |
 | 4. MapLibre Parity and Host Integration | 3/3 | Complete | 2026-05-12 |
 | 5. Examples, Docs, and Release Readiness | 2/2 | Complete | 2026-05-12 |
+| 6. Preset Catalog and Custom Draw Mode | 0/3 | Pending | - |
