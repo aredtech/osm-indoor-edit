@@ -14,6 +14,7 @@ export interface ScreenPoint {
 export interface TemporaryGeometry {
   geometryType: "point" | "line" | "polygon";
   coordinates: Coordinate[];
+  vertexCoordinates?: Coordinate[];
   previewCoordinates?: Coordinate[];
 }
 

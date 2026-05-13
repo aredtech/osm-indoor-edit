@@ -204,7 +204,7 @@ export class MapLibreRendererAdapter implements RendererAdapter {
       );
     }
 
-    for (const [vertexIndex, coordinate] of geometry.coordinates.entries()) {
+    for (const [vertexIndex, coordinate] of getTemporaryVertexCoordinates(geometry).entries()) {
       features.push(
         createFeature("Point", toPosition(coordinate), { role: "draft-vertex", vertexIndex })
       );
@@ -755,6 +755,22 @@ function midpointCoordinate(left: Coordinate, right: Coordinate): Coordinate {
     lat: (left.lat + right.lat) / 2,
     lon: (left.lon + right.lon) / 2
   };
+}
+
+function getTemporaryVertexCoordinates(geometry: TemporaryGeometry): Coordinate[] {
+  if (geometry.vertexCoordinates) {
+    return geometry.vertexCoordinates;
+  }
+
+  if (geometry.geometryType === "polygon" && geometry.coordinates.length > 1) {
+    const first = geometry.coordinates[0];
+    const last = geometry.coordinates[geometry.coordinates.length - 1];
+    if (first.lat === last.lat && first.lon === last.lon) {
+      return geometry.coordinates.slice(0, -1);
+    }
+  }
+
+  return geometry.coordinates;
 }
 
 function isMapLibreLikeMap(value: MapLibreLikeMap | undefined): value is MapLibreLikeMap {

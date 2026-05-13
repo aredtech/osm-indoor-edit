@@ -45,16 +45,19 @@ export function buildTemporaryGeometry(
   if (draft.kind === "poi") {
     return {
       geometryType: "point",
-      coordinates: draft.coordinates.slice(0, 1)
+      coordinates: draft.coordinates.slice(0, 1),
+      vertexCoordinates: draft.coordinates.slice(0, 1)
     };
   }
 
   const previewCoordinates = buildPreviewCoordinates(draft.coordinates, previewCoordinate);
+  const vertexCoordinates = [...draft.coordinates];
 
   if (draft.coordinates.length >= getMinimumPointCount(draft.kind)) {
     return {
       geometryType: "polygon",
       coordinates: [...draft.coordinates, draft.coordinates[0]],
+      vertexCoordinates,
       ...(previewCoordinates ? { previewCoordinates } : {})
     };
   }
@@ -62,6 +65,7 @@ export function buildTemporaryGeometry(
   return {
     geometryType: "line",
     coordinates: [...draft.coordinates],
+    vertexCoordinates,
     ...(previewCoordinates ? { previewCoordinates } : {})
   };
 }

@@ -21,7 +21,8 @@ describe("Leaflet drawing visuals", () => {
     clickMap(map, 1, 2);
 
     expect(adapter.getLayerCounts().draft).toBe(1);
-    expect(adapter.getTemporaryLayerCount("draft")).toBe(2);
+    expect(adapter.getDraftVertexHandleCount()).toBe(1);
+    expect(adapter.getDraftVertexHitTargetCount()).toBe(1);
   });
 
   it("shows polygon preview after 3 drawing clicks", () => {
@@ -33,7 +34,9 @@ describe("Leaflet drawing visuals", () => {
     clickMap(map, 5, 6);
 
     expect(adapter.getLayerCounts().draft).toBe(1);
-    expect(adapter.getTemporaryLayerCount("draft")).toBe(5);
+    expect(adapter.getDraftVertexHandleCount()).toBe(3);
+    expect(adapter.getDraftVertexHitTargetCount()).toBe(3);
+    expect(adapter.getDraftVertexHitTargetRadius()).toBeGreaterThanOrEqual(14);
   });
 
   it("shows dashed future connection while drawing toward the pointer", () => {
@@ -43,7 +46,9 @@ describe("Leaflet drawing visuals", () => {
     clickMap(map, 1, 2);
     moveMap(map, 3, 4);
 
-    expect(adapter.getTemporaryLayerCount("draft")).toBe(3);
+    expect(adapter.getDraftVertexHandleCount()).toBe(1);
+    expect(adapter.getDraftVertexHitTargetCount()).toBe(1);
+    expect(adapter.getTemporaryLayerCount("draft")).toBeGreaterThan(adapter.getDraftVertexHandleCount());
   });
 
   it("emits draftVertexDrag from draft vertex mouse drag gestures", () => {

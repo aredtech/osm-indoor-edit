@@ -62,6 +62,8 @@ export class LeafletRendererAdapter implements RendererAdapter {
   private selectedFeatureId: string | null = null;
   private activeVertexDrag: ActiveVertexDrag | undefined;
   private activeDraftVertexDrag: ActiveDraftVertexDrag | undefined;
+  private draftVertexMarkers: L.CircleMarker[] = [];
+  private draftVertexHitTargets: L.CircleMarker[] = [];
 
   constructor(options: LeafletAdapterOptions = {}) {
     this.paneName = options.paneName ?? "osminedit-editing";
@@ -116,6 +118,8 @@ export class LeafletRendererAdapter implements RendererAdapter {
     this.currentLevel = undefined;
     this.activeVertexDrag = undefined;
     this.activeDraftVertexDrag = undefined;
+    this.draftVertexMarkers = [];
+    this.draftVertexHitTargets = [];
     this.groups?.root.removeFrom(this.map);
     this.groups = undefined;
     this.map = undefined;
@@ -161,11 +165,19 @@ export class LeafletRendererAdapter implements RendererAdapter {
         draft.removeLayer(layer);
         this.temporaryLayers.delete(id);
       }
+      if (id === "draft") {
+        this.draftVertexMarkers = [];
+        this.draftVertexHitTargets = [];
+        this.activeDraftVertexDrag = undefined;
+      }
       return;
     }
 
     draft.clearLayers();
     this.temporaryLayers.clear();
+    this.draftVertexMarkers = [];
+    this.draftVertexHitTargets = [];
+    this.activeDraftVertexDrag = undefined;
   }
 
   commitFeature(feature: FeatureRecord): void {
@@ -362,6 +374,18 @@ export class LeafletRendererAdapter implements RendererAdapter {
     return handles ? handles.vertices.length + handles.midpoints.length : 0;
   }
 
+  getDraftVertexHandleCount(): number {
+    return this.draftVertexMarkers.length;
+  }
+
+  getDraftVertexHitTargetCount(): number {
+    return this.draftVertexHitTargets.length;
+  }
+
+  getDraftVertexHitTargetRadius(vertexIndex = 0): number {
+    return this.draftVertexHitTargets[vertexIndex]?.getRadius() ?? 0;
+  }
+
   fireCommittedFeatureClick(featureId: string, coordinate: Coordinate): void {
     this.emit("featureClick", { featureId, coordinate });
   }
@@ -393,20 +417,12 @@ export class LeafletRendererAdapter implements RendererAdapter {
   }
 
   fireDraftVertexHandleDrag(vertexIndex: number, coordinate: Coordinate): void {
-    const layer = this.temporaryLayers.get("draft");
-    if (!(layer instanceof L.LayerGroup)) {
+    const hitTarget = this.draftVertexHitTargets[vertexIndex] ?? this.draftVertexMarkers[vertexIndex];
+    if (!hitTarget) {
       return;
     }
 
-    const draftVertexMarkers = layer
-      .getLayers()
-      .filter((candidate): candidate is L.CircleMarker => candidate instanceof L.CircleMarker);
-    const marker = draftVertexMarkers[vertexIndex];
-    if (!marker) {
-      return;
-    }
-
-    marker.fire("mousedown", { latlng: marker.getLatLng() });
+    hitTarget.fire("mousedown", { latlng: hitTarget.getLatLng() });
     this.requireMap().fire("mousemove", {
       latlng: toLatLng(coordinate),
       originalEvent: new MouseEvent("mousemove")
@@ -439,23 +455,13 @@ export class LeafletRendererAdapter implements RendererAdapter {
 
   private createTemporaryLayer(geometry: TemporaryGeometry): L.Layer {
     const coordinates = geometry.coordinates.map(toLatLng);
+    const vertexCoordinates = getTemporaryVertexCoordinates(geometry).map(toLatLng);
     const group = L.layerGroup([], { pane: this.paneName });
-
-    for (const [vertexIndex, coordinate] of coordinates.entries()) {
-      const marker = L.circleMarker(coordinate, {
-        ...this.styles.draftVertex,
-        pane: this.paneName
-      });
-      marker.on("mousedown", (event) => {
-        this.activeDraftVertexDrag = { vertexIndex };
-        this.map?.dragging.disable();
-        L.DomEvent.stop(event);
-      });
-      marker.on("click", (event) => L.DomEvent.stop(event));
-      group.addLayer(marker);
-    }
+    this.draftVertexMarkers = [];
+    this.draftVertexHitTargets = [];
 
     if (geometry.geometryType === "point") {
+      this.addDraftVertexLayers(group, vertexCoordinates);
       return group;
     }
 
@@ -476,6 +482,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
         pane: this.paneName
       });
       group.addLayer(polygon);
+      this.addDraftVertexLayers(group, vertexCoordinates);
       return group;
     }
 
@@ -485,7 +492,39 @@ export class LeafletRendererAdapter implements RendererAdapter {
         pane: this.paneName
       })
     );
+    this.addDraftVertexLayers(group, vertexCoordinates);
     return group;
+  }
+
+  private addDraftVertexLayers(group: L.LayerGroup, coordinates: L.LatLng[]): void {
+    for (const [vertexIndex, coordinate] of coordinates.entries()) {
+      const marker = L.circleMarker(coordinate, {
+        ...this.styles.draftVertex,
+        pane: this.paneName
+      });
+      const hitTarget = L.circleMarker(coordinate, {
+        radius: Math.max((this.styles.draftVertex.radius as number | undefined) ?? 0, 14),
+        color: "#000000",
+        weight: 12,
+        opacity: 0,
+        fillColor: "#000000",
+        fillOpacity: 0,
+        pane: this.paneName
+      });
+      const startDrag = (event: L.LeafletEvent) => {
+        this.activeDraftVertexDrag = { vertexIndex };
+        this.map?.dragging.disable();
+        L.DomEvent.stop(event);
+      };
+      marker.on("mousedown", startDrag);
+      marker.on("click", (event) => L.DomEvent.stop(event));
+      hitTarget.on("mousedown", startDrag);
+      hitTarget.on("click", (event) => L.DomEvent.stop(event));
+      group.addLayer(marker);
+      group.addLayer(hitTarget);
+      this.draftVertexMarkers.push(marker);
+      this.draftVertexHitTargets.push(hitTarget);
+    }
   }
 
   private handleVertexDragMapEvent(eventName: LeafletListener["eventName"], event: L.LeafletMouseEvent): void {
@@ -637,4 +676,20 @@ function midpointCoordinate(left: Coordinate, right: Coordinate): Coordinate {
     lat: (left.lat + right.lat) / 2,
     lon: (left.lon + right.lon) / 2
   };
+}
+
+function getTemporaryVertexCoordinates(geometry: TemporaryGeometry): Coordinate[] {
+  if (geometry.vertexCoordinates) {
+    return geometry.vertexCoordinates;
+  }
+
+  if (geometry.geometryType === "polygon" && geometry.coordinates.length > 1) {
+    const first = geometry.coordinates[0];
+    const last = geometry.coordinates[geometry.coordinates.length - 1];
+    if (first.lat === last.lat && first.lon === last.lon) {
+      return geometry.coordinates.slice(0, -1);
+    }
+  }
+
+  return geometry.coordinates;
 }

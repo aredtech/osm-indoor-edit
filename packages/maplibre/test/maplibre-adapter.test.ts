@@ -86,8 +86,12 @@ describe("createMapLibreAdapter", () => {
       "draft-line",
       "draft-vertex",
       "draft-vertex",
-      "draft-vertex",
       "draft-vertex"
+    ]);
+    expect(data.features.flatMap((candidate) => candidate.properties?.vertexIndex ?? [])).toEqual([
+      0,
+      1,
+      2
     ]);
     expect(data.features[0].geometry).toMatchObject({
       type: "Polygon",

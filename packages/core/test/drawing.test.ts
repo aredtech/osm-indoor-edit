@@ -42,7 +42,8 @@ describe("drawing helpers", () => {
 
     expect(buildTemporaryGeometry(draft)).toEqual({
       geometryType: "line",
-      coordinates: draft.coordinates
+      coordinates: draft.coordinates,
+      vertexCoordinates: draft.coordinates
     });
   });
 
@@ -65,7 +66,8 @@ describe("drawing helpers", () => {
         { lat: 3, lon: 4 },
         { lat: 5, lon: 6 },
         { lat: 1, lon: 2 }
-      ]
+      ],
+      vertexCoordinates: draft.coordinates
     });
   });
 });

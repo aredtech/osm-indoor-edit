@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Phase 5 complete
-last_updated: "2026-05-13T02:29:18.056Z"
-last_activity: 2026-05-13 -- Added draft vertex dragging and fixed MapLibre preview visibility
+last_updated: "2026-05-13T02:55:00.000Z"
+last_activity: 2026-05-13 -- Resolved draft vertex hit detection and duplicate closing vertex bug
 progress:
   total_phases: 5
   completed_phases: 5
