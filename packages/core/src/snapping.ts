@@ -37,7 +37,8 @@ export function resolveSnapCandidate(
   tolerancePx: number = DEFAULT_SNAP_TOLERANCE_PX
 ): ResolvedSnap | undefined {
   const pointerPoint = project(pointer);
-  let nearest: ResolvedSnap | undefined;
+  let nearestNode: ResolvedSnap | undefined;
+  let nearestEdge: ResolvedSnap | undefined;
 
   for (const candidate of candidates) {
     const resolved = resolveCandidate(pointerPoint, candidate, project);
@@ -45,12 +46,19 @@ export function resolveSnapCandidate(
       continue;
     }
 
-    if (!nearest || resolved.distancePx < nearest.distancePx) {
-      nearest = resolved;
+    if (resolved.kind === "node") {
+      if (!nearestNode || resolved.distancePx < nearestNode.distancePx) {
+        nearestNode = resolved;
+      }
+      continue;
+    }
+
+    if (!nearestEdge || resolved.distancePx < nearestEdge.distancePx) {
+      nearestEdge = resolved;
     }
   }
 
-  return nearest;
+  return nearestNode ?? nearestEdge;
 }
 
 function resolveCandidate(

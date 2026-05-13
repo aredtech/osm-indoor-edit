@@ -248,7 +248,12 @@ snappingInput?.addEventListener("change", () => {
 
 function initializeEditor(): void {
   const adapter = createMapLibreAdapter();
-  editor = createEditor({ adapter, target: map, defaultLevel: "0" });
+  editor = createEditor({
+    adapter,
+    target: map,
+    defaultLevel: "0",
+    snapping: snappingInput?.checked ?? false
+  });
 
   editor.on("featureSelected", (event) => {
     selectedFeatureId = event.featureId;

@@ -1,14 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { createEditor, ElementIdAllocator, FakeRendererAdapter, fixedClock } from "../src";
+import {
+  createEditor,
+  ElementIdAllocator,
+  FakeRendererAdapter,
+  fixedClock,
+  type EditorOptions,
+  type TemporaryGeometry
+} from "../src";
 
-function createSnappingEditor() {
+function createSnappingEditor(options: Partial<EditorOptions> = {}) {
   const adapter = new FakeRendererAdapter();
   const editor = createEditor({
     adapter,
     target: { id: "map" },
     defaultLevel: "0",
     ids: new ElementIdAllocator({ nodeStart: 1, wayStart: 10, relationStart: 20 }),
-    clock: fixedClock("2026-05-12T09:30:00.000Z")
+    clock: fixedClock("2026-05-12T09:30:00.000Z"),
+    ...options
   });
   return { adapter, editor };
 }
@@ -23,6 +31,12 @@ function drawRoom(adapter: FakeRendererAdapter, editor: ReturnType<typeof create
 }
 
 describe("editor snapping", () => {
+  it("enables snapping from editor options", () => {
+    const { editor } = createSnappingEditor({ snapping: true });
+
+    expect(editor.getSnapping()).toMatchObject({ enabled: true });
+  });
+
   it("shares an existing node when snapping is enabled", () => {
     const { adapter, editor } = createSnappingEditor();
     const first = drawRoom(adapter, editor);
@@ -40,6 +54,47 @@ describe("editor snapping", () => {
     expect(ways).toMatchObject([
       { type: "way", id: 10, nodes: [1, 2, 3, 4, 1] },
       { type: "way", id: 11, nodes: [1, 5, 6, 1] }
+    ]);
+  });
+
+  it("prioritizes existing nodes over nearby edges", () => {
+    const { adapter, editor } = createSnappingEditor();
+    drawRoom(adapter, editor);
+
+    editor.setSnapping({ enabled: true, tolerancePx: 4 });
+    editor.startDraw("room");
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 0.2 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 20, lon: 20 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 20, lon: 30 } });
+    const second = editor.finishDraw();
+
+    const ways = editor.exportOsmInEdit().elements.filter((element) => element.type === "way");
+    expect(second.primitiveRefs.nodeIds[0]).toBe(1);
+    expect(ways).toMatchObject([
+      { type: "way", id: 10, nodes: [1, 2, 3, 4, 1] },
+      { type: "way", id: 11, nodes: [1, 5, 6, 1] }
+    ]);
+  });
+
+  it("previews draft drawing against the prioritized node snap candidate", () => {
+    const { adapter, editor } = createSnappingEditor();
+    drawRoom(adapter, editor);
+
+    editor.setSnapping({ enabled: true, tolerancePx: 4 });
+    editor.startDraw("room");
+    adapter.emit("pointerDown", { coordinate: { lat: 30, lon: 30 } });
+    adapter.emit("pointerMove", { coordinate: { lat: 1, lon: 0.2 } });
+
+    const snapCall = adapter.calls.find((call) => call.name === "showSnapCandidate");
+    expect(snapCall?.args[0]).toMatchObject({ kind: "node", nodeId: 1 });
+
+    const temporaryCall = adapter.calls
+      .filter((call) => call.name === "showTemporaryFeature")
+      .at(-1);
+    const geometry = temporaryCall?.args[1] as TemporaryGeometry | undefined;
+    expect(geometry?.previewCoordinates).toEqual([
+      { lat: 30, lon: 30 },
+      { lat: 0, lon: 0 }
     ]);
   });
 

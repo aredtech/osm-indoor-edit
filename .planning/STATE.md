@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Phase 5 complete
-last_updated: "2026-05-13T02:57:41.974Z"
-last_activity: 2026-05-13 -- Fixed Leaflet continuous draft vertex dragging
+last_updated: "2026-05-13T03:09:56.300Z"
+last_activity: 2026-05-13 -- Fixed snapping initial state and nearest-node draw preview
 progress:
   total_phases: 5
   completed_phases: 5
@@ -92,6 +92,7 @@ None yet.
 | 2026-05-13 | Add OsmInEdit-style draft preview and Leaflet vertex dragging | Complete |
 | 2026-05-13 | Add draft vertex dragging and fix MapLibre dashed preview visibility | Complete |
 | 2026-05-13 | Fix Leaflet continuous draft vertex dragging | Complete |
+| 2026-05-13 | Fix snapping initial state and nearest-node draw preview | Complete |
 
 ### Blockers/Concerns
 

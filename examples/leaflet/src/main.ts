@@ -86,10 +86,6 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
 
-const adapter = createLeafletAdapter();
-const editor = createEditor({ adapter, target: map, defaultLevel: "0" });
-adapter.setLevel("0");
-
 let selectedFeatureId: string | null = null;
 let latestFeature: FeatureRecord | null = null;
 const emptyExport = { elements: [], status: true as const };
@@ -105,6 +101,15 @@ const snappingInput = document.querySelector<HTMLInputElement>('[data-role="snap
 const validationSummary = document.querySelector<HTMLElement>('[data-role="validation-summary"]');
 const validationIssues = document.querySelector<HTMLElement>('[data-role="validation-issues"]');
 const eventLog = document.querySelector<HTMLElement>('[data-role="events"]');
+
+const adapter = createLeafletAdapter();
+const editor = createEditor({
+  adapter,
+  target: map,
+  defaultLevel: "0",
+  snapping: snappingInput?.checked ?? false
+});
+adapter.setLevel("0");
 
 function setStatus(message: string): void {
   if (status) {

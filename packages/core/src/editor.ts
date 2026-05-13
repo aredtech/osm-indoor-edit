@@ -27,7 +27,12 @@ import { normalizeOsmInEditExport } from "./import-export";
 import { ElementIdAllocator, type ElementIdAllocatorOptions } from "./ids";
 import { PrimitiveStore } from "./primitive-store";
 import type { CreateEditorRelationInput, RelationMemberInput, RelationMemberMatcher } from "./relations";
-import { DEFAULT_SNAP_TOLERANCE_PX, resolveSnapCandidate, type SnapSettings } from "./snapping";
+import {
+  DEFAULT_SNAP_TOLERANCE_PX,
+  resolveSnapCandidate,
+  type ResolvedSnap,
+  type SnapSettings
+} from "./snapping";
 import { collectSnapCandidates } from "./topology";
 import type { OsmElement, OsmInEditExport, OsmRelation, Tags } from "./types";
 import {
@@ -540,7 +545,8 @@ class HeadlessIndoorEditor implements IndoorEditor {
       return;
     }
 
-    const geometry = buildTemporaryGeometry(this.draft, coordinate);
+    const previewCoordinate = this.resolveDraftPreviewSnap(coordinate);
+    const geometry = buildTemporaryGeometry(this.draft, previewCoordinate);
     if (geometry) {
       this.adapter?.showTemporaryFeature("draft", geometry);
     }
@@ -647,24 +653,14 @@ class HeadlessIndoorEditor implements IndoorEditor {
   }
 
   private resolveDraftSnap(coordinate: Coordinate): { coordinate: Coordinate; nodeId?: number } {
-    if (!this.snapping.enabled || !this.adapter) {
-      return { coordinate };
-    }
-
-    const candidate = resolveSnapCandidate(
-      coordinate,
-      collectSnapCandidates(this.primitiveStore.getElements()),
-      (snapCoordinate) => this.adapter!.project(snapCoordinate),
-      this.snapping.tolerancePx
-    );
-
+    const candidate = this.findDraftSnapCandidate(coordinate);
     if (!candidate) {
-      this.adapter.clearSnapCandidate?.();
+      this.adapter?.clearSnapCandidate?.();
       return { coordinate };
     }
 
     if (candidate.kind === "node") {
-      this.adapter.showSnapCandidate?.(candidate);
+      this.adapter?.showSnapCandidate?.(candidate);
       return { coordinate: candidate.coordinate, nodeId: candidate.nodeId };
     }
 
@@ -675,8 +671,32 @@ class HeadlessIndoorEditor implements IndoorEditor {
     );
     const resolved = { ...candidate, coordinate: { lat: node.lat, lon: node.lon } };
     this.refreshFeaturesForWay(candidate.wayId, way.nodes);
-    this.adapter.showSnapCandidate?.(resolved);
+    this.adapter?.showSnapCandidate?.(resolved);
     return { coordinate: resolved.coordinate, nodeId: node.id };
+  }
+
+  private resolveDraftPreviewSnap(coordinate: Coordinate): Coordinate {
+    const candidate = this.findDraftSnapCandidate(coordinate);
+    if (!candidate) {
+      this.adapter?.clearSnapCandidate?.();
+      return coordinate;
+    }
+
+    this.adapter?.showSnapCandidate?.(candidate);
+    return candidate.coordinate;
+  }
+
+  private findDraftSnapCandidate(coordinate: Coordinate): ResolvedSnap | undefined {
+    if (!this.snapping.enabled || !this.adapter) {
+      return undefined;
+    }
+
+    return resolveSnapCandidate(
+      coordinate,
+      collectSnapCandidates(this.primitiveStore.getElements()),
+      (snapCoordinate) => this.adapter!.project(snapCoordinate),
+      this.snapping.tolerancePx
+    );
   }
 
   private requireFeature(featureId: string): FeatureRecord {
