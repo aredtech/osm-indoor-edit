@@ -51,7 +51,7 @@ describe("preset catalog", () => {
   it("covers OsmInEdit top-level preset groups from the category browser", () => {
     const catalog = createPresetCatalog();
 
-    const topLevelGroups = new Set(catalog.listPresets().map((preset) => preset.groupPath[0]));
+    const topLevelGroups = [...new Set(catalog.listPresets().map((preset) => preset.groupPath[0]))];
 
     expect(topLevelGroups).toEqual(
       expect.arrayContaining([

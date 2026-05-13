@@ -208,7 +208,7 @@ export const BUILT_IN_PRESETS: PresetDefinition[] = [
   {
     id: "shop-motorcycle",
     name: "Motorcycle dealer",
-    groupPath: ["Shop", "Vehicles"],
+    groupPath: ["Shops", "Vehicles"],
     role: "functional",
     geometry: ["point", "polygon"],
     tags: { shop: "motorcycle" },
@@ -252,7 +252,7 @@ export const BUILT_IN_PRESETS: PresetDefinition[] = [
   {
     id: "shop-convenience",
     name: "Convenience store",
-    groupPath: ["Shop", "Food"],
+    groupPath: ["Shops", "Food"],
     role: "functional",
     geometry: ["point", "polygon"],
     tags: { shop: "convenience" },
@@ -264,7 +264,7 @@ export const BUILT_IN_PRESETS: PresetDefinition[] = [
   {
     id: "amenity-cafe",
     name: "Cafe",
-    groupPath: ["Amenity", "Food"],
+    groupPath: ["Facilities", "Food and drink"],
     role: "functional",
     geometry: ["point", "polygon"],
     tags: { amenity: "cafe" },
@@ -276,7 +276,7 @@ export const BUILT_IN_PRESETS: PresetDefinition[] = [
   {
     id: "amenity-toilets",
     name: "Toilets",
-    groupPath: ["Amenity"],
+    groupPath: ["Facilities"],
     role: "functional",
     geometry: ["point", "polygon"],
     tags: { amenity: "toilets" },
@@ -288,7 +288,7 @@ export const BUILT_IN_PRESETS: PresetDefinition[] = [
   {
     id: "office-company",
     name: "Company office",
-    groupPath: ["Office"],
+    groupPath: ["Offices"],
     role: "functional",
     geometry: ["point", "polygon"],
     tags: { office: "company" },
@@ -300,7 +300,7 @@ export const BUILT_IN_PRESETS: PresetDefinition[] = [
   {
     id: "office-lawyer",
     name: "Lawyer office",
-    groupPath: ["Office"],
+    groupPath: ["Offices"],
     role: "functional",
     geometry: ["point", "polygon"],
     tags: { office: "lawyer" },
@@ -308,5 +308,161 @@ export const BUILT_IN_PRESETS: PresetDefinition[] = [
     iconSvg: PRESET_ICON_SVGS.office,
     terms: ["law", "legal"],
     fields: [nameField, operatorField]
+  },
+  {
+    id: "barrier-fence",
+    name: "Fence",
+    groupPath: ["Barriers"],
+    role: "structural",
+    geometry: ["line", "polygon"],
+    tags: { barrier: "fence" },
+    match: { barrier: "keyvalue" },
+    icon: "barrier",
+    iconSvg: PRESET_ICON_SVGS.barrier,
+    terms: ["barrier", "fence"],
+    fields: [
+      { id: "fence_type", key: "fence_type", type: "combo", label: "Fence type", group: "Details" },
+      { id: "height", key: "height", type: "number", label: "Height", group: "Details" }
+    ]
+  },
+  {
+    id: "barrier-gate",
+    name: "Gate",
+    groupPath: ["Barriers"],
+    role: "structural",
+    geometry: ["point", "line"],
+    tags: { barrier: "gate" },
+    icon: "barrier",
+    iconSvg: PRESET_ICON_SVGS.barrier,
+    terms: ["barrier", "gate", "entrance"],
+    fields: [nameField, { id: "access", key: "access", type: "combo", label: "Access", group: "Access" }]
+  },
+  {
+    id: "transport-platform",
+    name: "Platform",
+    groupPath: ["Transport", "Rail"],
+    role: "functional",
+    geometry: ["point", "line", "polygon"],
+    tags: { public_transport: "platform" },
+    icon: "transport",
+    iconSvg: PRESET_ICON_SVGS.transport,
+    terms: ["rail", "train", "platform", "transit"],
+    fields: [
+      nameField,
+      { id: "ref", key: "ref", type: "text", label: "Reference", group: "Common" },
+      { id: "railway", key: "railway", type: "combo", label: "Railway", group: "Transport" }
+    ]
+  },
+  {
+    id: "transport-bus-stop",
+    name: "Bus stop",
+    groupPath: ["Transport", "Road"],
+    role: "functional",
+    geometry: ["point"],
+    tags: { highway: "bus_stop" },
+    icon: "transport",
+    iconSvg: PRESET_ICON_SVGS.transport,
+    terms: ["bus", "stop", "transport"],
+    fields: [nameField, { id: "ref", key: "ref", type: "text", label: "Reference", group: "Common" }]
+  },
+  {
+    id: "facility-bench",
+    name: "Bench",
+    groupPath: ["Facilities"],
+    role: "functional",
+    geometry: ["point", "line"],
+    tags: { amenity: "bench" },
+    icon: "amenity",
+    iconSvg: PRESET_ICON_SVGS.amenity,
+    terms: ["bench", "seat", "facility"],
+    fields: [nameField, { id: "backrest", key: "backrest", type: "check", label: "Backrest", group: "Details" }]
+  },
+  {
+    id: "facility-drinking-water",
+    name: "Drinking water",
+    groupPath: ["Facilities"],
+    role: "functional",
+    geometry: ["point"],
+    tags: { amenity: "drinking_water" },
+    icon: "amenity",
+    iconSvg: PRESET_ICON_SVGS.amenity,
+    terms: ["water", "fountain", "facility"],
+    fields: [nameField, wheelchairField]
+  },
+  {
+    id: "sport-pitch",
+    name: "Sports pitch",
+    groupPath: ["Sports"],
+    role: "functional",
+    geometry: ["point", "polygon"],
+    tags: { leisure: "pitch" },
+    icon: "sports",
+    iconSvg: PRESET_ICON_SVGS.sports,
+    terms: ["sport", "pitch", "court"],
+    fields: [
+      nameField,
+      { id: "sport", key: "sport", type: "combo", label: "Sport", group: "Sports" },
+      { id: "surface", key: "surface", type: "combo", label: "Surface", group: "Details" }
+    ]
+  },
+  {
+    id: "sport-fitness-station",
+    name: "Fitness station",
+    groupPath: ["Sports"],
+    role: "functional",
+    geometry: ["point", "polygon"],
+    tags: { leisure: "fitness_station" },
+    icon: "sports",
+    iconSvg: PRESET_ICON_SVGS.sports,
+    terms: ["fitness", "gym", "exercise"],
+    fields: [nameField, { id: "fee", key: "fee", type: "check", label: "Fee", group: "Details" }]
+  },
+  {
+    id: "man-made-pier",
+    name: "Pier",
+    groupPath: ["Man Made", "Water"],
+    role: "structural",
+    geometry: ["line", "polygon"],
+    tags: { man_made: "pier" },
+    icon: "water",
+    iconSvg: PRESET_ICON_SVGS.water,
+    terms: ["pier", "dock", "man made"],
+    fields: [nameField, { id: "material", key: "material", type: "combo", label: "Material", group: "Details" }]
+  },
+  {
+    id: "man-made-bridge",
+    name: "Bridge",
+    groupPath: ["Man Made", "Crossing"],
+    role: "structural",
+    geometry: ["line", "polygon"],
+    tags: { man_made: "bridge" },
+    icon: "water",
+    iconSvg: PRESET_ICON_SVGS.water,
+    terms: ["bridge", "man made"],
+    fields: [nameField, { id: "layer", key: "layer", type: "number", label: "Layer", group: "Details" }]
+  },
+  {
+    id: "craft-electrician",
+    name: "Electrician",
+    groupPath: ["Craft"],
+    role: "functional",
+    geometry: ["point", "polygon"],
+    tags: { craft: "electrician" },
+    icon: "craft",
+    iconSvg: PRESET_ICON_SVGS.craft,
+    terms: ["craft", "electrician", "repair"],
+    fields: [nameField, operatorField, { id: "phone", key: "phone", type: "text", label: "Phone", group: "Contact" }]
+  },
+  {
+    id: "craft-plumber",
+    name: "Plumber",
+    groupPath: ["Craft"],
+    role: "functional",
+    geometry: ["point", "polygon"],
+    tags: { craft: "plumber" },
+    icon: "craft",
+    iconSvg: PRESET_ICON_SVGS.craft,
+    terms: ["craft", "plumber", "repair"],
+    fields: [nameField, operatorField, { id: "phone", key: "phone", type: "text", label: "Phone", group: "Contact" }]
   }
 ];
