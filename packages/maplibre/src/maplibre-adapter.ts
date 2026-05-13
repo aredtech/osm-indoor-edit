@@ -195,6 +195,14 @@ export class MapLibreRendererAdapter implements RendererAdapter {
       features.push(createFeature("LineString", coordinates, { role: "draft-line" }));
     }
 
+    if (geometry.previewCoordinates && geometry.previewCoordinates.length >= 2) {
+      features.push(
+        createFeature("LineString", geometry.previewCoordinates.map(toPosition), {
+          role: "draft-preview-line"
+        })
+      );
+    }
+
     for (const [vertexIndex, coordinate] of geometry.coordinates.entries()) {
       features.push(
         createFeature("Point", toPosition(coordinate), { role: "draft-vertex", vertexIndex })
@@ -300,6 +308,7 @@ export class MapLibreRendererAdapter implements RendererAdapter {
     return [
       "draft-fill",
       "draft-line",
+      "draft-preview-line",
       "draft-vertex",
       "committed-fill",
       "committed-line",
@@ -451,6 +460,19 @@ export class MapLibreRendererAdapter implements RendererAdapter {
         ["get", "role"],
         "draft-line"
       ]),
+      {
+        ...this.layer("draft-preview-line", "line", "draft", this.styles.draftLine.paint, [
+          "==",
+          ["get", "role"],
+          "draft-preview-line"
+        ]),
+        layout: this.styles.draftLine.layout,
+        paint: {
+          ...this.styles.draftLine.paint,
+          "line-opacity": 0.75,
+          "line-dasharray": [2, 3]
+        }
+      },
       this.layer("draft-vertex", "circle", "draft", this.styles.draftVertex.paint, [
         "==",
         ["get", "role"],

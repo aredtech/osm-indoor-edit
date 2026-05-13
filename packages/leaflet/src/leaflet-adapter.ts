@@ -26,6 +26,11 @@ type LeafletListener = {
   handler: L.LeafletMouseEventHandlerFn;
 };
 
+interface ActiveVertexDrag {
+  featureId: string;
+  vertexIndex: number;
+}
+
 interface EditingGroups {
   root: L.LayerGroup;
   draft: L.LayerGroup;
@@ -51,6 +56,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
   >();
   private currentLevel: string | undefined;
   private selectedFeatureId: string | null = null;
+  private activeVertexDrag: ActiveVertexDrag | undefined;
 
   constructor(options: LeafletAdapterOptions = {}) {
     this.paneName = options.paneName ?? "osminedit-editing";
@@ -103,6 +109,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
     this.committedFeatures.clear();
     this.handleLayers.clear();
     this.currentLevel = undefined;
+    this.activeVertexDrag = undefined;
     this.groups?.root.removeFrom(this.map);
     this.groups = undefined;
     this.map = undefined;
@@ -218,6 +225,11 @@ export class LeafletRendererAdapter implements RendererAdapter {
           coordinate: fromLatLng(target.getLatLng()),
           originalEvent: event
         });
+      });
+      marker.on("mousedown", (event) => {
+        this.activeVertexDrag = { featureId, vertexIndex: index };
+        this.map?.dragging.disable();
+        L.DomEvent.stop(event);
       });
       this.groups?.handles.addLayer(marker);
       vertices.push(marker);
@@ -357,6 +369,23 @@ export class LeafletRendererAdapter implements RendererAdapter {
     marker?.setLatLng(toLatLng(coordinate));
   }
 
+  fireVertexHandleDrag(featureId: string, vertexIndex: number, coordinate: Coordinate): void {
+    const marker = this.handleLayers.get(featureId)?.vertices[vertexIndex];
+    if (!marker) {
+      return;
+    }
+
+    marker.fire("mousedown", { latlng: marker.getLatLng() });
+    this.requireMap().fire("mousemove", {
+      latlng: toLatLng(coordinate),
+      originalEvent: new MouseEvent("mousemove")
+    });
+    this.requireMap().fire("mouseup", {
+      latlng: toLatLng(coordinate),
+      originalEvent: new MouseEvent("mouseup")
+    });
+  }
+
   fireMidpointClick(featureId: string, edgeIndex: number, coordinate: Coordinate): void {
     const marker = this.handleLayers.get(featureId)?.midpoints[edgeIndex];
     marker?.fire("click", { latlng: toLatLng(coordinate) });
@@ -367,6 +396,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
     adapterEventName: "pointerDown" | "pointerMove" | "pointerUp"
   ): void {
     const handler = (event: L.LeafletMouseEvent) => {
+      this.handleVertexDragMapEvent(leafletEventName, event);
       this.emit(adapterEventName, {
         coordinate: fromLatLng(event.latlng),
         originalEvent: event.originalEvent
@@ -393,6 +423,17 @@ export class LeafletRendererAdapter implements RendererAdapter {
       return group;
     }
 
+    if (geometry.previewCoordinates && geometry.previewCoordinates.length >= 2) {
+      group.addLayer(
+        L.polyline(geometry.previewCoordinates.map(toLatLng), {
+          ...this.styles.draftLine,
+          dashArray: "8 10",
+          opacity: 0.75,
+          pane: this.paneName
+        })
+      );
+    }
+
     if (geometry.geometryType === "polygon") {
       const polygon: L.Polygon = L.polygon(coordinates, {
         ...this.styles.preview,
@@ -409,6 +450,26 @@ export class LeafletRendererAdapter implements RendererAdapter {
       })
     );
     return group;
+  }
+
+  private handleVertexDragMapEvent(eventName: LeafletListener["eventName"], event: L.LeafletMouseEvent): void {
+    if (!this.activeVertexDrag) {
+      return;
+    }
+
+    if (eventName === "mousemove") {
+      this.emit("vertexDrag", {
+        featureId: this.activeVertexDrag.featureId,
+        vertexIndex: this.activeVertexDrag.vertexIndex,
+        coordinate: fromLatLng(event.latlng),
+        originalEvent: event.originalEvent
+      });
+    }
+
+    if (eventName === "mouseup") {
+      this.activeVertexDrag = undefined;
+      this.map?.dragging.enable();
+    }
   }
 
   private createCommittedLayer(feature: FeatureRecord, selected: boolean): L.Layer {

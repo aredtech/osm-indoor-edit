@@ -36,6 +36,16 @@ describe("Leaflet drawing visuals", () => {
     expect(adapter.getTemporaryLayerCount("draft")).toBe(5);
   });
 
+  it("shows dashed future connection while drawing toward the pointer", () => {
+    const { adapter, editor, map } = createLeafletDrawingEditor();
+
+    editor.startDraw("room");
+    clickMap(map, 1, 2);
+    moveMap(map, 3, 4);
+
+    expect(adapter.getTemporaryLayerCount("draft")).toBe(3);
+  });
+
   it("clearTemporaryFeature removes one draft layer", () => {
     const { adapter } = createLeafletDrawingEditor();
 
@@ -91,5 +101,12 @@ function clickMap(map: L.Map, lat: number, lon: number): void {
   map.fire("click", {
     latlng: L.latLng(lat, lon),
     originalEvent: new MouseEvent("click")
+  });
+}
+
+function moveMap(map: L.Map, lat: number, lon: number): void {
+  map.fire("mousemove", {
+    latlng: L.latLng(lat, lon),
+    originalEvent: new MouseEvent("mousemove")
   });
 }

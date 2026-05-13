@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Phase 5 complete
-last_updated: "2026-05-12T18:03:15.952Z"
-last_activity: 2026-05-12 -- Fixed Leaflet example map visibility
+last_updated: "2026-05-13T02:15:42.193Z"
+last_activity: 2026-05-13 -- Added draft preview and Leaflet vertex dragging
 progress:
   total_phases: 5
   completed_phases: 5
@@ -89,6 +89,7 @@ None yet.
 | 2026-05-12 | Rename npm packages to `@aredtech/osm-indoor-edit` architecture | Complete |
 | 2026-05-12 | Add package READMEs and bump public packages to `0.1.0` | Complete |
 | 2026-05-12 | Fix Leaflet example map visibility | Complete |
+| 2026-05-13 | Add OsmInEdit-style draft preview and Leaflet vertex dragging | Complete |
 
 ### Blockers/Concerns
 

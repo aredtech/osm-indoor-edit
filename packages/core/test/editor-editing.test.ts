@@ -66,6 +66,50 @@ describe("editor editing lifecycle", () => {
     ]);
   });
 
+  it("renders a non-committed draft preview line to the pointer", () => {
+    const { adapter, editor } = createEditingEditor();
+    editor.startDraw("room");
+
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    adapter.emit("pointerMove", { coordinate: { lat: 3, lon: 4 } });
+
+    const temporaryCalls = adapter.calls.filter((call) => call.name === "showTemporaryFeature");
+    expect(temporaryCalls.at(-1)?.args[1]).toMatchObject({
+      geometryType: "line",
+      coordinates: [{ lat: 1, lon: 2 }],
+      previewCoordinates: [
+        { lat: 1, lon: 2 },
+        { lat: 3, lon: 4 }
+      ]
+    });
+  });
+
+  it("renders polygon draft preview through the pointer back to the first vertex", () => {
+    const { adapter, editor } = createEditingEditor();
+    editor.startDraw("room");
+
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 3, lon: 4 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 5, lon: 6 } });
+    adapter.emit("pointerMove", { coordinate: { lat: 7, lon: 8 } });
+
+    const temporaryCalls = adapter.calls.filter((call) => call.name === "showTemporaryFeature");
+    expect(temporaryCalls.at(-1)?.args[1]).toMatchObject({
+      geometryType: "polygon",
+      coordinates: [
+        { lat: 1, lon: 2 },
+        { lat: 3, lon: 4 },
+        { lat: 5, lon: 6 },
+        { lat: 1, lon: 2 }
+      ],
+      previewCoordinates: [
+        { lat: 5, lon: 6 },
+        { lat: 7, lon: 8 },
+        { lat: 1, lon: 2 }
+      ]
+    });
+  });
+
   it("supports host API vertex delete", () => {
     const { editor, feature } = drawRoom(4);
 

@@ -133,6 +133,9 @@ class HeadlessIndoorEditor implements IndoorEditor {
         this.adapter.on("pointerDown", (event) =>
           this.runAdapterMutation(() => this.addDraftCoordinate(event.coordinate))
         ),
+        this.adapter.on("pointerMove", (event) =>
+          this.runAdapterMutation(() => this.previewDraftCoordinate(event.coordinate))
+        ),
         this.adapter.on("featureClick", (event) =>
           this.runAdapterMutation(() => this.selectFeature(event.featureId))
         ),
@@ -527,6 +530,17 @@ class HeadlessIndoorEditor implements IndoorEditor {
       this.adapter?.showTemporaryFeature("draft", geometry);
     }
     this.events.emit("drawingUpdated", { pointCount: this.draft.coordinates.length });
+  }
+
+  private previewDraftCoordinate(coordinate: Coordinate): void {
+    if (!this.draft || this.draft.kind === "poi") {
+      return;
+    }
+
+    const geometry = buildTemporaryGeometry(this.draft, coordinate);
+    if (geometry) {
+      this.adapter?.showTemporaryFeature("draft", geometry);
+    }
   }
 
   private enqueueReadyEvent(): void {

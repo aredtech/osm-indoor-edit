@@ -75,6 +75,24 @@ describe("Leaflet editing visuals", () => {
     expect(events).toEqual(["vertex:1", "midpoint:0", "drag:feature-1"]);
   });
 
+  it("emits vertexDrag from handle mouse drag gestures", () => {
+    const adapter = createAttachedAdapter();
+    const seen: Array<{ index: number; lat: number; lon: number }> = [];
+    adapter.commitFeature(feature);
+    adapter.showVertexHandles(feature.id, handles);
+    adapter.on("vertexDrag", (event) =>
+      seen.push({
+        index: event.vertexIndex,
+        lat: event.coordinate.lat,
+        lon: event.coordinate.lon
+      })
+    );
+
+    adapter.fireVertexHandleDrag(feature.id, 1, { lat: 30, lon: 40 });
+
+    expect(seen).toEqual([{ index: 1, lat: 30, lon: 40 }]);
+  });
+
   it("cleans up committed feature and handles", () => {
     const adapter = createAttachedAdapter();
     adapter.commitFeature(feature);

@@ -35,7 +35,8 @@ export function getMinimumPointCount(kind: DrawKind): number {
 }
 
 export function buildTemporaryGeometry(
-  draft: DraftDrawingState
+  draft: DraftDrawingState,
+  previewCoordinate?: Coordinate
 ): TemporaryGeometry | undefined {
   if (draft.coordinates.length === 0) {
     return undefined;
@@ -48,15 +49,35 @@ export function buildTemporaryGeometry(
     };
   }
 
+  const previewCoordinates = buildPreviewCoordinates(draft.coordinates, previewCoordinate);
+
   if (draft.coordinates.length >= getMinimumPointCount(draft.kind)) {
     return {
       geometryType: "polygon",
-      coordinates: [...draft.coordinates, draft.coordinates[0]]
+      coordinates: [...draft.coordinates, draft.coordinates[0]],
+      ...(previewCoordinates ? { previewCoordinates } : {})
     };
   }
 
   return {
     geometryType: "line",
-    coordinates: [...draft.coordinates]
+    coordinates: [...draft.coordinates],
+    ...(previewCoordinates ? { previewCoordinates } : {})
   };
+}
+
+function buildPreviewCoordinates(
+  coordinates: Coordinate[],
+  previewCoordinate: Coordinate | undefined
+): Coordinate[] | undefined {
+  if (!previewCoordinate || coordinates.length === 0) {
+    return undefined;
+  }
+
+  const last = coordinates[coordinates.length - 1];
+  if (coordinates.length >= 3) {
+    return [last, previewCoordinate, coordinates[0]];
+  }
+
+  return [last, previewCoordinate];
 }

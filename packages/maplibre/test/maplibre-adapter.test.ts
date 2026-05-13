@@ -95,6 +95,30 @@ describe("createMapLibreAdapter", () => {
     });
   });
 
+  it("renders temporary preview line source data", () => {
+    const adapter = createAttachedAdapter();
+
+    adapter.showTemporaryFeature("draft", {
+      geometryType: "line",
+      coordinates: [{ lat: 1, lon: 2 }],
+      previewCoordinates: [
+        { lat: 1, lon: 2 },
+        { lat: 3, lon: 4 }
+      ]
+    });
+
+    const data = adapter.getSourceData("draft");
+    expect(data.features.map((candidate) => candidate.properties?.role)).toEqual([
+      "draft-line",
+      "draft-preview-line",
+      "draft-vertex"
+    ]);
+    expect(data.features[1].geometry).toMatchObject({
+      type: "LineString",
+      coordinates: [[2, 1], [4, 3]]
+    });
+  });
+
   it("filters committed features by level and repeat_on", () => {
     const adapter = createAttachedAdapter();
     adapter.commitFeature({
