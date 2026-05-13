@@ -25,3 +25,9 @@ export class DrawingIntegrityError extends OsmIndoorError {
     super(message, "DRAWING_INTEGRITY_ERROR");
   }
 }
+
+export class PresetCompatibilityError extends OsmIndoorError {
+  constructor(message: string) {
+    super(message, "PRESET_COMPATIBILITY_ERROR");
+  }
+}

@@ -10,12 +10,14 @@ import {
   createMinimumTags,
   type DefaultTagsConfig,
   buildTemporaryGeometry,
+  type DrawGeometryType,
   getMinimumPointCount,
   type DraftDrawingState,
   type DrawKind,
+  resolveDrawGeometry,
   type StartDrawOptions
 } from "./drawing";
-import { DrawingIntegrityError } from "./errors";
+import { DrawingIntegrityError, PresetCompatibilityError } from "./errors";
 import {
   type EditorEventMap,
   type EventHandler,
@@ -26,6 +28,15 @@ import { FeatureStore, inferFeatureKind, type FeatureRecord } from "./feature-st
 import { normalizeOsmInEditExport } from "./import-export";
 import { ElementIdAllocator, type ElementIdAllocatorOptions } from "./ids";
 import { PrimitiveStore } from "./primitive-store";
+import {
+  applyPresetFieldValues as buildPresetFieldDiff,
+  createPresetCatalog,
+  createPresetChangeDiff,
+  type PresetCatalog,
+  type PresetCatalogOptions,
+  type PresetMatchResult,
+  type TagDiff
+} from "./presets";
 import type { CreateEditorRelationInput, RelationMemberInput, RelationMemberMatcher } from "./relations";
 import {
   DEFAULT_SNAP_TOLERANCE_PX,
@@ -53,6 +64,7 @@ export interface EditorOptions {
   defaultLevel?: string;
   snapping?: boolean | Partial<SnapSettings>;
   validationRules?: ValidationRule[];
+  presets?: PresetCatalogOptions;
 }
 
 export interface EditorStateSnapshot {
@@ -72,6 +84,10 @@ export interface IndoorEditor {
   selectFeature(featureId: string | null): void;
   deleteFeature(featureId: string): void;
   updateTags(featureId: string, tags: Tags): FeatureRecord;
+  getPresetCatalog(): PresetCatalog;
+  matchFeaturePresets(featureId: string): PresetMatchResult;
+  changeFeaturePreset(featureId: string, nextPresetId: string): FeatureRecord;
+  applyPresetFieldValues(featureId: string, presetId: string, values: Record<string, unknown>): FeatureRecord;
   deleteVertex(featureId: string, vertexIndex: number): FeatureRecord;
   moveVertex(featureId: string, vertexIndex: number, coordinate: Coordinate): FeatureRecord;
   insertVertex(featureId: string, edgeIndex: number, coordinate: Coordinate): FeatureRecord;
@@ -112,6 +128,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
   private readonly clock: Clock;
   private readonly ids: ElementIdAllocator;
   private readonly defaultTags?: DefaultTagsConfig;
+  private readonly presetCatalog: PresetCatalog;
   private level: string | undefined;
   private snapping: SnapSettings;
   private readonly validationRules: ValidationRule[];
@@ -123,6 +140,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
     this.clock = options.clock ?? systemClock;
     this.ids = resolveElementIdAllocator(options);
     this.defaultTags = options.defaultTags;
+    this.presetCatalog = createPresetCatalog(options.presets);
     this.primitiveStore = new PrimitiveStore({ clock: this.clock, ids: this.ids });
     this.adapter = options.adapter;
     this.level = options.defaultLevel;
@@ -205,16 +223,21 @@ class HeadlessIndoorEditor implements IndoorEditor {
       throw new DrawingIntegrityError("Select a level before drawing");
     }
 
+    const geometryType = this.resolveStartDrawGeometry(kind, options);
+    this.assertPresetGeometryCompatibility(options.presetId, geometryType);
+
     this.clearDraft();
     this.draft = {
       kind,
+      geometryType,
       level: this.level,
       tags: createMinimumTags(kind, this.level, {
         ...resolveDefaultTags(this.defaultTags, kind, this.level),
         ...(options.tags ?? {})
       }),
       coordinates: [],
-      nodeIds: []
+      nodeIds: [],
+      ...(options.presetId === undefined ? {} : { presetId: options.presetId })
     };
     this.events.emit("toolChanged", { tool: kind });
     this.events.emit("drawingStarted", { kind });
@@ -236,15 +259,11 @@ class HeadlessIndoorEditor implements IndoorEditor {
       throw new DrawingIntegrityError("No active drawing");
     }
 
-    if (draft.coordinates.length < getMinimumPointCount(draft.kind)) {
-      throw new DrawingIntegrityError(
-        draft.kind === "poi"
-          ? "Add a point before finishing this POI."
-          : "Add at least 3 points before finishing this polygon."
-      );
+    if (draft.coordinates.length < getMinimumPointCount(draft.geometryType)) {
+      throw new DrawingIntegrityError(minimumPointMessage(draft.geometryType, draft.kind));
     }
 
-    const feature = draft.kind === "poi" ? this.finishPointDrawing(draft) : this.finishWayDrawing(draft);
+    const feature = draft.geometryType === "point" ? this.finishPointDrawing(draft) : this.finishWayDrawing(draft);
     this.clearDraft();
     this.adapter?.commitFeature(this.withFeatureCoordinates(feature));
     this.events.emit("toolChanged", { tool: null });
@@ -309,6 +328,32 @@ class HeadlessIndoorEditor implements IndoorEditor {
     this.events.emit("tagsUpdated", { featureId, tags: updated.tags });
     this.events.emit("featureUpdated", { featureId });
     return updated;
+  }
+
+  getPresetCatalog(): PresetCatalog {
+    return this.presetCatalog;
+  }
+
+  matchFeaturePresets(featureId: string): PresetMatchResult {
+    const feature = this.requireFeature(featureId);
+    const geometryType = feature.geometryType === "relation" ? undefined : feature.geometryType;
+    return this.presetCatalog.matchPresets(feature.tags, geometryType);
+  }
+
+  changeFeaturePreset(featureId: string, nextPresetId: string): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const nextPreset = this.requirePreset(nextPresetId);
+    const previousPresetId = feature.preset?.id ?? this.matchFeaturePresets(featureId).functional[0]?.preset.id;
+    const previousPreset = previousPresetId ? this.presetCatalog.getPreset(previousPresetId) : undefined;
+    const diff = createPresetChangeDiff(previousPreset, nextPreset, feature.tags);
+    return this.applyTagDiff(featureId, diff, { id: nextPreset.id });
+  }
+
+  applyPresetFieldValues(featureId: string, presetId: string, values: Record<string, unknown>): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const preset = this.requirePreset(presetId);
+    const diff = buildPresetFieldDiff(preset, feature.tags, values);
+    return this.applyTagDiff(featureId, diff, { id: preset.id });
   }
 
   deleteVertex(featureId: string, vertexIndex: number): FeatureRecord {
@@ -541,7 +586,7 @@ class HeadlessIndoorEditor implements IndoorEditor {
   }
 
   private previewDraftCoordinate(coordinate: Coordinate): void {
-    if (!this.draft || this.draft.kind === "poi") {
+    if (!this.draft || this.draft.geometryType === "point") {
       return;
     }
 
@@ -613,7 +658,8 @@ class HeadlessIndoorEditor implements IndoorEditor {
       level: draft.level,
       tags: draft.tags,
       primitiveRefs: { nodeIds: [node.id], relationIds: [] },
-      coordinates: [{ lat: node.lat, lon: node.lon }]
+      coordinates: [{ lat: node.lat, lon: node.lon }],
+      ...(draft.presetId === undefined ? {} : { preset: { id: draft.presetId } })
     });
   }
 
@@ -630,20 +676,85 @@ class HeadlessIndoorEditor implements IndoorEditor {
         tags: {}
       }).id;
     });
-    const way = this.primitiveStore.createWay({
-      nodes: nodeIds,
-      tags: draft.tags,
-      closed: true
-    });
+    const way =
+      draft.geometryType === "line"
+        ? this.primitiveStore.createWay({
+            nodes: nodeIds,
+            tags: draft.tags,
+            closed: false
+          })
+        : this.primitiveStore.createWay({
+            nodes: nodeIds,
+            tags: draft.tags,
+            closed: true
+          });
 
     return this.featureStore.add({
       kind: draft.kind,
-      geometryType: "polygon",
+      geometryType: draft.geometryType,
       level: draft.level,
       tags: draft.tags,
       primitiveRefs: { nodeIds: way.nodes, wayId: way.id, relationIds: [] },
-      coordinates: coordinatesForNodeIds(way.nodes, this.primitiveStore)
+      coordinates: coordinatesForNodeIds(way.nodes, this.primitiveStore),
+      ...(draft.presetId === undefined ? {} : { preset: { id: draft.presetId } })
     });
+  }
+
+  private resolveStartDrawGeometry(kind: DrawKind, options: StartDrawOptions): DrawGeometryType {
+    try {
+      return resolveDrawGeometry(kind, options);
+    } catch (error) {
+      throw new DrawingIntegrityError(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private assertPresetGeometryCompatibility(presetId: string | undefined, geometryType: DrawGeometryType): void {
+    if (!presetId) {
+      return;
+    }
+
+    const preset = this.presetCatalog.getPreset(presetId);
+    if (!preset) {
+      throw new PresetCompatibilityError(`Preset ${presetId} does not exist`);
+    }
+    if (!preset.geometry.includes(geometryType)) {
+      throw new PresetCompatibilityError(`Preset ${presetId} does not support ${geometryType} geometry`);
+    }
+  }
+
+  private requirePreset(presetId: string) {
+    const preset = this.presetCatalog.getPreset(presetId);
+    if (!preset) {
+      throw new PresetCompatibilityError(`Preset ${presetId} does not exist`);
+    }
+    return preset;
+  }
+
+  private applyTagDiff(featureId: string, diff: TagDiff, preset?: { id: string }): FeatureRecord {
+    const feature = this.requireFeature(featureId);
+    const nextTags = { ...feature.tags };
+    for (const key of diff.unset) {
+      delete nextTags[key];
+    }
+    Object.assign(nextTags, diff.set);
+
+    if (feature.primitiveRefs.wayId !== undefined) {
+      this.primitiveStore.updateElementTags("way", feature.primitiveRefs.wayId, nextTags);
+    } else {
+      for (const nodeId of uniqueNodeIds(feature.primitiveRefs.nodeIds)) {
+        this.primitiveStore.updateElementTags("node", nodeId, nextTags);
+      }
+    }
+
+    const updated = this.featureStore.update(featureId, {
+      tags: nextTags,
+      level: nextTags.level ?? feature.level,
+      ...(preset === undefined ? {} : { preset })
+    });
+    this.adapter?.updateFeature(this.withFeatureCoordinates(updated));
+    this.events.emit("tagsUpdated", { featureId, tags: updated.tags });
+    this.events.emit("featureUpdated", { featureId });
+    return updated;
   }
 
   private clearDraft(): void {
@@ -856,6 +967,18 @@ function coordinatesForNodeIds(nodeIds: readonly number[], primitiveStore: Primi
     }
     return { lat: node.lat, lon: node.lon };
   });
+}
+
+function minimumPointMessage(geometryType: DrawGeometryType, kind: DrawKind): string {
+  if (geometryType === "point") {
+    return kind === "poi" ? "Add a point before finishing this POI." : "Add a point before finishing this feature.";
+  }
+
+  if (geometryType === "line") {
+    return "Add at least 2 points before finishing this line.";
+  }
+
+  return "Add at least 3 points before finishing this polygon.";
 }
 
 function immutableSnapshot<T>(value: T): Readonly<T> {

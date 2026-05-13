@@ -35,6 +35,13 @@ export interface FeatureRecord {
   tags: Tags;
   primitiveRefs: PrimitiveRefs;
   coordinates?: Coordinate[];
+  preset?: FeaturePresetMetadata;
+}
+
+export interface FeaturePresetMetadata {
+  id: string;
+  structuralPresetId?: string;
+  functionalPresetId?: string;
 }
 
 export interface AddFeatureInput {
@@ -44,6 +51,7 @@ export interface AddFeatureInput {
   tags?: Tags;
   primitiveRefs: PrimitiveRefs;
   coordinates?: Coordinate[];
+  preset?: FeaturePresetMetadata;
 }
 
 export type UpdateFeatureInput = Partial<Omit<AddFeatureInput, "primitiveRefs">> & {
@@ -62,7 +70,8 @@ export class FeatureStore {
       ...(input.level === undefined ? {} : { level: input.level }),
       tags: { ...(input.tags ?? {}) },
       primitiveRefs: clonePrimitiveRefs(input.primitiveRefs),
-      ...(input.coordinates === undefined ? {} : { coordinates: cloneCoordinates(input.coordinates) })
+      ...(input.coordinates === undefined ? {} : { coordinates: cloneCoordinates(input.coordinates) }),
+      ...(input.preset === undefined ? {} : { preset: clonePresetMetadata(input.preset) })
     };
 
     this.features.set(feature.id, feature);
@@ -116,11 +125,15 @@ export class FeatureStore {
         : {}),
       ...("coordinates" in input && input.coordinates !== undefined
         ? { coordinates: cloneCoordinates(input.coordinates) }
-        : {})
+        : {}),
+      ...("preset" in input ? (input.preset === undefined ? {} : { preset: clonePresetMetadata(input.preset) }) : {})
     };
 
     if ("level" in input && input.level === undefined) {
       delete updated.level;
+    }
+    if ("preset" in input && input.preset === undefined) {
+      delete updated.preset;
     }
 
     this.features.set(id, updated);
@@ -229,8 +242,13 @@ function cloneFeature(feature: FeatureRecord): FeatureRecord {
     ...feature,
     tags: { ...feature.tags },
     primitiveRefs: clonePrimitiveRefs(feature.primitiveRefs),
-    ...(feature.coordinates === undefined ? {} : { coordinates: cloneCoordinates(feature.coordinates) })
+    ...(feature.coordinates === undefined ? {} : { coordinates: cloneCoordinates(feature.coordinates) }),
+    ...(feature.preset === undefined ? {} : { preset: clonePresetMetadata(feature.preset) })
   };
+}
+
+function clonePresetMetadata(preset: FeaturePresetMetadata): FeaturePresetMetadata {
+  return { ...preset };
 }
 
 function clonePrimitiveRefs(refs: PrimitiveRefs): PrimitiveRefs {

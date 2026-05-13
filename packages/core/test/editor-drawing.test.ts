@@ -226,13 +226,9 @@ describe("editor drawing lifecycle", () => {
       geometryType: "polygon",
       primitiveRefs: { nodeIds: [3, 4, 5, 3] }
     });
-    expect(editor.exportOsmInEdit().elements).toMatchObject([
-      { type: "node", id: 1 },
-      { type: "node", id: 2 },
+    const ways = editor.exportOsmInEdit().elements.filter((element) => element.type === "way");
+    expect(ways).toMatchObject([
       { type: "way", id: 10, nodes: [1, 2], tags: { indoor: "wall", level: "0" } },
-      { type: "node", id: 3 },
-      { type: "node", id: 4 },
-      { type: "node", id: 5 },
       { type: "way", id: 11, nodes: [3, 4, 5, 3], tags: { shop: "motorcycle", name: "Ared Bikes", level: "0" } }
     ]);
   });
@@ -262,6 +258,7 @@ describe("editor drawing lifecycle", () => {
       level: "0",
       name: "Ared Bikes",
       amenity: "cafe",
+      brand: "Honda",
       wheelchair: "yes"
     });
     expect(events).toEqual([

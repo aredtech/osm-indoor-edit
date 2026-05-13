@@ -32,6 +32,7 @@ describe("drawing helpers", () => {
   it("builds line draft geometry before polygon preview", () => {
     const draft: DraftDrawingState = {
       kind: "room",
+      geometryType: "polygon",
       level: "0",
       tags: { indoor: "room", level: "0" },
       coordinates: [
@@ -50,6 +51,7 @@ describe("drawing helpers", () => {
   it("builds polygon preview once 3 coordinates exist", () => {
     const draft: DraftDrawingState = {
       kind: "room",
+      geometryType: "polygon",
       level: "0",
       tags: { indoor: "room", level: "0" },
       coordinates: [
