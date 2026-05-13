@@ -4,7 +4,9 @@ import {
   DrawingIntegrityError,
   ElementIdAllocator,
   FakeRendererAdapter,
-  fixedClock
+  fixedClock,
+  PresetCompatibilityError,
+  type TemporaryGeometry
 } from "../src";
 
 function createDrawingEditor() {
@@ -18,6 +20,12 @@ function createDrawingEditor() {
   });
 
   return { adapter, editor };
+}
+
+function lastTemporaryGeometry(adapter: FakeRendererAdapter): TemporaryGeometry | undefined {
+  return adapter.calls
+    .filter((call) => call.name === "showTemporaryFeature")
+    .at(-1)?.args[1] as TemporaryGeometry | undefined;
 }
 
 describe("editor drawing lifecycle", () => {
@@ -147,5 +155,120 @@ describe("editor drawing lifecycle", () => {
     expect(cancellations).toEqual(["cancelDraw"]);
     expect(adapter.calls.map((call) => call.name)).toContain("clearTemporaryFeature");
     expect(editor.getElements()).toEqual([]);
+  });
+
+  it("shows custom line draft geometry and requires Add at least 2 points", () => {
+    const { adapter, editor } = createDrawingEditor();
+
+    editor.startDraw("custom", { geometryType: "line", tags: { indoor: "wall" }, presetId: "indoor-wall" });
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+
+    expect(lastTemporaryGeometry(adapter)).toMatchObject({
+      geometryType: "line",
+      coordinates: [{ lat: 1, lon: 2 }]
+    });
+    expect(() => editor.finishDraw()).toThrow("Add at least 2 points before finishing this line.");
+    expect(editor.getElements()).toEqual([]);
+  });
+
+  it("rejects incompatible preset geometry and does not mutate primitives", () => {
+    const { editor } = createDrawingEditor();
+
+    expect(() =>
+      editor.startDraw("custom", { geometryType: "line", tags: { shop: "motorcycle" }, presetId: "shop-motorcycle" })
+    ).toThrow(PresetCompatibilityError);
+    expect(editor.getElements()).toEqual([]);
+  });
+
+  it("commits custom point with preset metadata", () => {
+    const { adapter, editor } = createDrawingEditor();
+
+    editor.startDraw("custom", {
+      geometryType: "point",
+      tags: { shop: "motorcycle", name: "Ared Bikes" },
+      presetId: "shop-motorcycle"
+    });
+    adapter.emit("pointerDown", { coordinate: { lat: 7, lon: 8 } });
+    const feature = editor.finishDraw();
+
+    expect(feature).toMatchObject({
+      kind: "custom",
+      geometryType: "point",
+      preset: { id: "shop-motorcycle" },
+      tags: { shop: "motorcycle", name: "Ared Bikes", level: "0" }
+    });
+    expect(editor.exportOsmInEdit().elements).toMatchObject([
+      { type: "node", id: 1, tags: { shop: "motorcycle", name: "Ared Bikes", level: "0" } }
+    ]);
+  });
+
+  it("commits custom line and custom polygon", () => {
+    const { adapter, editor } = createDrawingEditor();
+
+    editor.startDraw("custom", { geometryType: "line", tags: { indoor: "wall" }, presetId: "indoor-wall" });
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 3, lon: 4 } });
+    const line = editor.finishDraw();
+
+    editor.startDraw("custom", {
+      geometryType: "polygon",
+      tags: { shop: "motorcycle", name: "Ared Bikes" },
+      presetId: "shop-motorcycle"
+    });
+    adapter.emit("pointerDown", { coordinate: { lat: 5, lon: 6 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 7, lon: 8 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 9, lon: 10 } });
+    const polygon = editor.finishDraw();
+
+    expect(line).toMatchObject({ kind: "custom", geometryType: "line", primitiveRefs: { nodeIds: [1, 2] } });
+    expect(polygon).toMatchObject({
+      kind: "custom",
+      geometryType: "polygon",
+      primitiveRefs: { nodeIds: [3, 4, 5, 3] }
+    });
+    expect(editor.exportOsmInEdit().elements).toMatchObject([
+      { type: "node", id: 1 },
+      { type: "node", id: 2 },
+      { type: "way", id: 10, nodes: [1, 2], tags: { indoor: "wall", level: "0" } },
+      { type: "node", id: 3 },
+      { type: "node", id: 4 },
+      { type: "node", id: 5 },
+      { type: "way", id: 11, nodes: [3, 4, 5, 3], tags: { shop: "motorcycle", name: "Ared Bikes", level: "0" } }
+    ]);
+  });
+
+  it("changeFeaturePreset and applyPresetFieldValues update tags and emit events", () => {
+    const { adapter, editor } = createDrawingEditor();
+    const events: string[] = [];
+    editor.on("tagsUpdated", (payload) => events.push(`tagsUpdated:${payload.tags.amenity ?? payload.tags.shop}`));
+    editor.on("featureUpdated", (payload) => events.push(`featureUpdated:${payload.featureId}`));
+
+    editor.startDraw("custom", {
+      geometryType: "polygon",
+      tags: { shop: "motorcycle", name: "Ared Bikes", brand: "Honda" },
+      presetId: "shop-motorcycle"
+    });
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 3, lon: 4 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 5, lon: 6 } });
+    const feature = editor.finishDraw();
+
+    const cafe = editor.changeFeaturePreset(feature.id, "amenity-cafe");
+    expect(cafe.tags).toEqual({ level: "0", name: "Ared Bikes", brand: "Honda", amenity: "cafe" });
+    expect(cafe.preset?.id).toBe("amenity-cafe");
+
+    const updated = editor.applyPresetFieldValues(feature.id, "amenity-cafe", { brand: "", wheelchair: "yes" });
+    expect(updated.tags).toEqual({
+      level: "0",
+      name: "Ared Bikes",
+      amenity: "cafe",
+      wheelchair: "yes"
+    });
+    expect(events).toEqual([
+      "tagsUpdated:cafe",
+      `featureUpdated:${feature.id}`,
+      "tagsUpdated:cafe",
+      `featureUpdated:${feature.id}`
+    ]);
   });
 });

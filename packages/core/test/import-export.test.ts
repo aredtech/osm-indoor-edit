@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   createEditor,
   DataIntegrityError,
+  ElementIdAllocator,
+  FakeRendererAdapter,
   normalizeOsmInEditExport,
   sortElementsForImport,
   type OsmInEditExport
@@ -144,5 +146,35 @@ describe("import/export fixtures", () => {
       id: 40,
       timestamp: "2026-05-11T16:42:41Z"
     });
+  });
+
+  it("exports custom preset metadata as feature state only, not element preset metadata", () => {
+    const adapter = new FakeRendererAdapter();
+    const editor = createEditor({
+      adapter,
+      target: { id: "map" },
+      defaultLevel: "0",
+      ids: new ElementIdAllocator({ nodeStart: 1, wayStart: 10, relationStart: 20 })
+    });
+
+    editor.startDraw("custom", {
+      geometryType: "polygon",
+      presetId: "shop-motorcycle",
+      tags: { shop: "motorcycle", name: "Ared Bikes" }
+    });
+    adapter.emit("pointerDown", { coordinate: { lat: 1, lon: 2 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 3, lon: 4 } });
+    adapter.emit("pointerDown", { coordinate: { lat: 5, lon: 6 } });
+    const feature = editor.finishDraw();
+
+    expect(feature.preset).toEqual({ id: "shop-motorcycle" });
+    const way = editor.exportOsmInEdit().elements.find((element) => element.type === "way");
+    expect(way).toMatchObject({
+      type: "way",
+      nodes: [1, 2, 3, 1],
+      tags: { shop: "motorcycle", name: "Ared Bikes", level: "0" }
+    });
+    expect(way?.tags).not.toHaveProperty("presetId");
+    expect(way?.tags).not.toHaveProperty("preset");
   });
 });
