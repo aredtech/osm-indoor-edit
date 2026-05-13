@@ -124,11 +124,16 @@ Plans:
   3. Host apps can start custom drawing from a preset and selected geometry type without forcing the feature through room/corridor/POI-only APIs.
   4. Finished custom features export OsmInEdit-style nodes/ways with preset tags and host-edited field tags.
   5. Developers can match existing feature tags back to likely presets and update a feature when the selected preset changes.
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
+**Wave 1**
 - [ ] 06-01: Preset catalog model, built-in data, and search/matching helpers
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 06-02: Custom draw mode and preset-backed feature creation
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 06-03: Preset field schema APIs, docs, and examples
 
 ## Progress
