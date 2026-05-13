@@ -94,6 +94,7 @@ None yet.
 | 2026-05-13 | Fix Leaflet continuous draft vertex dragging | Complete |
 | 2026-05-13 | Fix snapping initial state and nearest-node draw preview | Complete |
 | 2026-05-13 | Add Phase 6 preset catalog and custom draw mode roadmap entry | Complete |
+| 2026-05-13 | Expand curated OsmInEdit preset groups and example category browser | Complete |
 
 ### Blockers/Concerns
 
