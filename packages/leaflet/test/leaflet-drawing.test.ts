@@ -69,6 +69,26 @@ describe("Leaflet drawing visuals", () => {
     expect(seen).toEqual([{ index: 0, lat: 10, lon: 20 }]);
   });
 
+  it("keeps dragging a draft vertex after the draft layer re-renders", () => {
+    const { adapter, editor, map } = createLeafletDrawingEditor();
+
+    editor.startDraw("room");
+    clickMap(map, 1, 2);
+    adapter.fireDraftVertexHandleDragPath(0, [
+      { lat: 10, lon: 20 },
+      { lat: 30, lon: 40 }
+    ]);
+    clickMap(map, 3, 4);
+    clickMap(map, 5, 6);
+    editor.finishDraw();
+
+    expect(editor.exportOsmInEdit().elements.slice(0, 3)).toMatchObject([
+      { type: "node", lat: 30, lon: 40 },
+      { type: "node", lat: 3, lon: 4 },
+      { type: "node", lat: 5, lon: 6 }
+    ]);
+  });
+
   it("clearTemporaryFeature removes one draft layer", () => {
     const { adapter } = createLeafletDrawingEditor();
 

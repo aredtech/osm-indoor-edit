@@ -147,7 +147,7 @@ export class LeafletRendererAdapter implements RendererAdapter {
 
   showTemporaryFeature(id: string, geometry: TemporaryGeometry): void {
     this.requireGroups();
-    this.clearTemporaryFeature(id);
+    this.replaceTemporaryFeature(id);
     const layer = this.createTemporaryLayer(geometry);
     this.temporaryLayers.set(id, layer);
     this.groups?.draft.addLayer(layer);
@@ -178,6 +178,19 @@ export class LeafletRendererAdapter implements RendererAdapter {
     this.draftVertexMarkers = [];
     this.draftVertexHitTargets = [];
     this.activeDraftVertexDrag = undefined;
+  }
+
+  private replaceTemporaryFeature(id: string): void {
+    const draft = this.groups?.draft;
+    const layer = this.temporaryLayers.get(id);
+    if (draft && layer) {
+      draft.removeLayer(layer);
+      this.temporaryLayers.delete(id);
+    }
+    if (id === "draft") {
+      this.draftVertexMarkers = [];
+      this.draftVertexHitTargets = [];
+    }
   }
 
   commitFeature(feature: FeatureRecord): void {
@@ -417,18 +430,25 @@ export class LeafletRendererAdapter implements RendererAdapter {
   }
 
   fireDraftVertexHandleDrag(vertexIndex: number, coordinate: Coordinate): void {
+    this.fireDraftVertexHandleDragPath(vertexIndex, [coordinate]);
+  }
+
+  fireDraftVertexHandleDragPath(vertexIndex: number, coordinates: Coordinate[]): void {
     const hitTarget = this.draftVertexHitTargets[vertexIndex] ?? this.draftVertexMarkers[vertexIndex];
     if (!hitTarget) {
       return;
     }
 
     hitTarget.fire("mousedown", { latlng: hitTarget.getLatLng() });
-    this.requireMap().fire("mousemove", {
-      latlng: toLatLng(coordinate),
-      originalEvent: new MouseEvent("mousemove")
-    });
+    for (const coordinate of coordinates) {
+      this.requireMap().fire("mousemove", {
+        latlng: toLatLng(coordinate),
+        originalEvent: new MouseEvent("mousemove")
+      });
+    }
+    const finalCoordinate = coordinates.at(-1) ?? fromLatLng(hitTarget.getLatLng());
     this.requireMap().fire("mouseup", {
-      latlng: toLatLng(coordinate),
+      latlng: toLatLng(finalCoordinate),
       originalEvent: new MouseEvent("mouseup")
     });
   }

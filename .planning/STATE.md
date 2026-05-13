@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Phase 5 complete
-last_updated: "2026-05-13T02:55:00.000Z"
-last_activity: 2026-05-13 -- Resolved draft vertex hit detection and duplicate closing vertex bug
+last_updated: "2026-05-13T02:57:41.974Z"
+last_activity: 2026-05-13 -- Fixed Leaflet continuous draft vertex dragging
 progress:
   total_phases: 5
   completed_phases: 5
@@ -91,6 +91,7 @@ None yet.
 | 2026-05-12 | Fix Leaflet example map visibility | Complete |
 | 2026-05-13 | Add OsmInEdit-style draft preview and Leaflet vertex dragging | Complete |
 | 2026-05-13 | Add draft vertex dragging and fix MapLibre dashed preview visibility | Complete |
+| 2026-05-13 | Fix Leaflet continuous draft vertex dragging | Complete |
 
 ### Blockers/Concerns
 
